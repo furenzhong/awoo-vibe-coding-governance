@@ -48,6 +48,7 @@ AI 的详细操作入口是 [接入指南](docs/03_DELIVERY/DELIVERY_PROJECT_INS
 ```text
 你的项目/
   project-os.json             # 权威文件位置与工具包来源
+  .project-os-adoption.json    # 首次接入的实际内容与来源证据
   AGENTS.md                   # 保留原文，追加治理索引
   CLAUDE.md                   # 保留原文，追加共享规则 import
   scripts/project_os.py       # 本地检查工具
@@ -64,7 +65,7 @@ AI 的详细操作入口是 [接入指南](docs/03_DELIVERY/DELIVERY_PROJECT_INS
 
 ## 手动执行 / 检查命令
 
-需要 Python 3.10+ 和 Git；不需要模型 API key 或第三方 Python 包。Windows PowerShell、macOS、Linux 可用同一 Python 入口。以下命令在**目标项目根目录**执行，源工具包放在旁边：
+需要 Python 3.10+ 和 Git；不需要模型 API key 或第三方 Python 包。各平台共用 Python 入口；具体版本的跨平台验证范围见[当前状态](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md)。以下命令在**目标项目根目录**执行，源工具包放在旁边：
 
 ```text
 git clone https://github.com/furenzhong/awoo-vibe-coding-governance.git ../awoo-governance-kit
@@ -81,7 +82,27 @@ python scripts/project_os.py inventory --target . --json
 - `snapshot` 输出当前可观察信息，不自动改写项目状态。
 - `inventory` 只读盘点 Markdown 等文档，报告入口、工作材料、证据、归档、未归类项、完全重复候选和生命周期冲突。分类依据声明和路径，不代表 AI 实际读取范围；未归类不等于垃圾。它不自动归档、合并或删除。
 
-已有文档通过 `--mapping` 接入，见 [映射示例](examples/adoption-mapping.json) 和 [接入指南](docs/03_DELIVERY/DELIVERY_PROJECT_INSTANTIATION_GUIDE_v1.md)。示例路径必须替换成目标的真实路径。`apply` 不自动升级已有部署；更新时比较并合并脚本、规则和来源版本，保留项目自有内容。旧任务仍可使用，新上下文协议按需启用；报告中的 `context.legacy` 表示相应任务未验证新协议，不需要补造历史记录。
+已有文档通过 `--mapping` 接入，见 [映射示例](examples/adoption-mapping.json) 和 [接入指南](docs/03_DELIVERY/DELIVERY_PROJECT_INSTANTIATION_GUIDE_v1.md)。示例路径必须替换成目标的真实路径。`apply` 负责首次增量接入，不升级已有部署。首次接入记录实际采用内容与来源；已有项目重跑不会补造旧安装历史。采用记录是升级证据，不是第五份事实来源。旧任务仍可使用，新上下文协议按需启用；报告中的 `context.legacy` 表示相应任务未验证新协议，不需要补造历史记录。
+
+## 项目做了一半，怎样升级
+
+把下面这段话发给正在维护目标项目的 AI 即可：
+
+```text
+依据 https://github.com/furenzhong/awoo-vibe-coding-governance 的升级指南，
+升级当前项目适用的治理能力。先识别现有治理职责和真实采用情况，保留项目代码、
+业务要求、未提交改动、历史证据及正在执行的任务，复用已有目录和事实来源。
+
+先在隔离副本验证能正确接续开发，再应用核对过的局部变更，留下实际采用和回退记录。
+不要全量覆盖模板，不要启动文档清理，也不要补造旧任务的历史。
+告诉我采用了什么、验证了什么、还没覆盖什么；不需要我手填迁移表。
+```
+
+AI 按[已有项目升级指南](docs/03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md)先查明约束和事实，再准备明确的候选内容。`upgrade-plan` 生成自含计划，`upgrade-apply` 在复核后逐项写入并保留前后内容，`upgrade-rollback` 只回退本次仍未被后续修改的内容。已有原采用基线时做三方比较；没有基线时从当前可核实材料适配，不猜版本。
+
+这些工具不替 AI 判断需求，不自动语义合并，也不是跨文件事务或任意写入者的锁。写前检查发现文件变化时会拒绝旧计划；升级后又改过的文件需要局部逆向补丁。上游 push 不会更新你的项目，没有后台升级或自动清理。自定义治理目录无需迁移全部历史。当前实现与实际验证范围见[当前状态](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md)。
+
+旧阶段结束不代表其中的稳定协作规则全部失效，适配时应分别保留规则、标明被替代的执行句。计划和日志可能含项目全文，需随项目的私有备份保留；工具要求将其保存在目标之外，不会自动进入目标 Git。连续升级通常先回退最近一次，不能用旧快照覆盖后续工作。
 
 开发过程中产生的调研、候选方案和阶段计划不应全部进入每次 AI 会话。用户明确要求整理后，按 [文档生命周期](docs/00_PROJECT_CONTROL/DOCUMENT_LIFECYCLE.md) 在指定范围内收敛当前结论，保住用户约束、否决原因、未决问题和证据，再标记替代关系或归档。验收看新 AI 能否找对当前决定并保留未决问题，不看删除了多少文件。删除不是默认动作。
 

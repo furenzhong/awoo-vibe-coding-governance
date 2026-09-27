@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "components": [
+    {
+      "component": "rules-maintenance",
+      "path": "docs/RULES.md",
+      "reason": "Use one authoritative location for each current fact while preserving the synthetic project's local user-only cleanup constraint.",
+      "candidate": "candidate/RULES.md",
+      "base": "base/RULES.md",
+      "upstream": "upstream/RULES.md",
+      "mode": "merged",
+      "merge_reason": "The local file adds the user-only cleanup constraint. The upstream file replaces duplicated status maintenance with references to one source. The explicit candidate retains both changes; it does not start or prompt cleanup. All source files are synthetic fixtures, not an asserted historical installation."
+    },
+    {
+      "component": "handoff-recovery",
+      "path": "docs/HANDOFF.md",
+      "reason": "No adopted baseline is available for this synthetic handoff. Preserve the unknown session and save outcome; add evidence-first recovery without redispatch or fabricated history.",
+      "candidate": "candidate/HANDOFF.md",
+      "mode": "current_only"
+    }
+  ]
+}

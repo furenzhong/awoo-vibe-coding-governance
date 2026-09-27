@@ -8,6 +8,7 @@ This is the reusable governance **source kit**, not a business project. It helps
 - Continuation point: `docs/05_HANDOFF/HANDOFF_CURRENT.md`.
 - Governance rules: `docs/00_PROJECT_CONTROL/DOCUMENT_GOVERNANCE_SYSTEM.md`.
 - Applying this kit elsewhere: `docs/03_DELIVERY/DELIVERY_PROJECT_INSTANTIATION_GUIDE_v1.md`.
+- Upgrading existing or custom governance: `docs/03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md`.
 - Delegating work: `docs/02_TECH/HARNESS_CONTRACT.md`.
 - Task context, corrections, and recovery: `docs/02_TECH/TASK_CONTEXT.md`.
 - Testing whether governance helps: `docs/03_DELIVERY/GOVERNANCE_TRIAL.md`.
@@ -22,9 +23,15 @@ Use `scripts/project_os.py plan --target <target>` before `apply`. Inspect the p
 
 Preserve the target's product, code, Git history, remote, existing rules and uncommitted work. Reuse its authoritative documents through a mapping. Do not copy the source kit's project status into the target, replace its README, repoint origin, or push its business content to the source remote. New empty projects are supported too; they do not require a frontend, backend or a particular stack.
 
+For an authorized upgrade, identify actual adopted components and local customization before proposing changes. Missing adoption history stays unknown. Review explicit candidate changes against current requirements and existing sources, then use the upgrade guide to plan, apply and record only that scope. Coordinate writers of affected files and recheck drift before applying. A newer upstream revision or an edited version number does not prove adoption; a journal or file update does not prove that a running executor received a correction. Upgrade does not start or prompt document cleanup.
+
+Retiring a phase's dispatch does not retire stable rules embedded in the same document. Preserve applicable isolation, write ownership and acceptance constraints through current references. Mark superseded execution clauses at their location with the replacement source and scope, including exceptions for older tasks; keep unrelated constraints effective.
+
 ## Maintain facts once
 
 `project-os.json` maps each authoritative source. Stable instructions live here; mutable project state lives in the status document. Handoff preserves unfinished context and points to state. Briefs and indexes link to those sources rather than maintaining another progress list. Historical observations belong in dated evidence or session records.
+
+Backlogs keep task status, the next action and a topic link rather than repeating that topic's requirements, constraints or pending choices. When the current change touches a duplicate entry, replace that duplicate with a reference only after confirming the topic preserves the full content; this does not start unrelated cleanup.
 
 Treat working notes, current authority, evidence, and archives differently. Only when the user explicitly requests document inventory or cleanup, consolidate within the requested scope: preserve constraints, unresolved work, rejected options and their rationale, and evidence in the appropriate sources. Keep canonical paths stable; mark replaced notes in place or update references before archiving. Read archives only for a specific question. For an explicitly requested inventory or cleanup, use `python scripts/project_os.py inventory --target . --json` as needed for read-only signals; its scan is project-wide, but cleanup remains limited to the requested scope. Unclassified or identical files are not a deletion list. Delete only within existing authorization after checking dependencies and retention; age, length, or filename alone is insufficient.
 

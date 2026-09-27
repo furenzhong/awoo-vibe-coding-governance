@@ -53,6 +53,7 @@ By default, four small documents are added. Existing equivalents can be mapped d
 ```text
 your-project/
   project-os.json             # Authoritative paths and kit provenance
+  .project-os-adoption.json    # Actual installed content and provenance evidence
   AGENTS.md                   # Original content preserved; index appended
   CLAUDE.md                   # Original content preserved; shared-rule import appended
   scripts/project_os.py       # Local checking tool
@@ -69,7 +70,7 @@ For compatibility with existing installations, `project-os.json`, `project-os/`,
 
 ## Manual commands
 
-Requires Python 3.10+ and Git, with no model API key or third-party Python packages. The same Python entry works in Windows PowerShell, macOS, and Linux. Run these commands from the **target project's root**, with the source kit beside it:
+Requires Python 3.10+ and Git, with no model API key or third-party Python packages. Platforms share the Python entry; see [current status](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md) for cross-platform validation of a specific version. Run these commands from the **target project's root**, with the source kit beside it:
 
 ```text
 git clone https://github.com/furenzhong/awoo-vibe-coding-governance.git ../awoo-governance-kit
@@ -86,7 +87,32 @@ python scripts/project_os.py inventory --target . --json
 - `snapshot` reports observable state without rewriting project status.
 - `inventory` reads Markdown and related documents and reports entrypoints, working material, evidence, archives, unclassified files, exact duplicate candidates, and lifecycle conflicts. Classification uses declarations and paths, not observed AI reading; unclassified does not mean disposable. It never archives, merges, or deletes files automatically.
 
-Use `--mapping` to adopt existing documents; see the [mapping example](examples/adoption-mapping.json) and [integration guide](docs/03_DELIVERY/DELIVERY_PROJECT_INSTANTIATION_GUIDE_v1.md). Replace example paths with real target paths. `apply` does not upgrade existing installations: compare and merge the script, rules, and source version while preserving project-owned content. Legacy tasks remain supported, and the context protocol is optional. The report's `context.legacy` identifies tasks not checked against the new protocol; do not fabricate historical records to migrate them.
+Use `--mapping` to adopt existing documents; see the [mapping example](examples/adoption-mapping.json) and [integration guide](docs/03_DELIVERY/DELIVERY_PROJECT_INSTANTIATION_GUIDE_v1.md). Replace example paths with real target paths. `apply` handles initial additive adoption, not upgrades. First adoption records actual content and provenance; rerunning it in an existing project does not invent an earlier installation history. The adoption record is upgrade evidence, not a fifth authoritative source. Legacy tasks remain supported, and the context protocol is optional. The report's `context.legacy` identifies tasks not checked against the new protocol; do not fabricate historical records to migrate them.
+
+## Upgrading a project already in development
+
+Send this prompt to the AI maintaining your target project:
+
+```text
+Follow the upgrade guide at
+https://github.com/furenzhong/awoo-vibe-coding-governance
+to adopt the governance capabilities appropriate for this project.
+Identify existing governance responsibilities and actual adoption first.
+Preserve application code, requirements, uncommitted work, historical
+evidence, and active tasks. Reuse existing directories and sources of truth.
+
+Verify continuation in an isolated copy before applying reviewed local
+changes. Retain evidence of actual adoption and how to roll it back.
+Do not replace project material with templates, start document cleanup,
+or invent task history. Report what was adopted, verified, and left uncovered.
+Do not ask me to fill in a migration form.
+```
+
+The AI follows the [existing-project upgrade guide](docs/03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md), establishes constraints and facts, and prepares explicit candidate content. `upgrade-plan` creates a self-contained plan. `upgrade-apply` rechecks it, writes one item at a time, and retains before/after content. `upgrade-rollback` reverts this upgrade's content only while it has not been changed again. A known adoption baseline enables three-way comparison; without one, adaptation starts from verifiable current material, not a guessed version.
+
+These tools do not decide requirements or perform semantic merges. They are not a cross-file transaction or a lock against arbitrary writers. A detected file change at a pre-write check rejects the stale plan; files changed after the upgrade need a focused reverse patch. An upstream push does not update your project, and there is no background upgrade or automatic cleanup. Custom governance directories do not require rewriting their history. See [current status](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md) for implementation and actual validation coverage.
+
+Ending an old phase does not invalidate stable collaboration rules embedded in its documents. Preserve those rules and mark superseded execution clauses with their replacements. Plans and journals can contain full project text: retain them with private project backups. The tool requires them to be stored outside the target, so they do not automatically enter its Git history. Usually revert the latest upgrade first; never overwrite later work with an older snapshot.
 
 Research notes, candidate designs, and phase plans should not all enter every AI session. When the user explicitly requests cleanup, follow the [document lifecycle](docs/00_PROJECT_CONTROL/DOCUMENT_LIFECYCLE.md) within the requested scope to consolidate current conclusions while preserving user constraints, rejected options and their rationale, open questions, and evidence before marking replacements or archiving. Judge success by whether a fresh AI finds the current decision and preserves unresolved work, not by the number of deleted files. Deletion is never the default action.
 

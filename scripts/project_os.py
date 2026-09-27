@@ -31,7 +31,10 @@ changes remotes, commits changes, or contacts an agent service.
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 from datetime import datetime
+import difflib
 import hashlib
 import json
 import os
@@ -40,13 +43,15 @@ import re
 import stat
 import subprocess
 import sys
+import tempfile
 from typing import Any
 from urllib.parse import urlsplit
 
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 SCHEMA_VERSION = 1
 MANIFEST = "project-os.json"
+ADOPTION = ".project-os-adoption.json"
 KIT_ORIGIN = "github.com/furenzhong/awoo-vibe-coding-governance"
 # Retain the former URL for clones and provenance recorded before the rename.
 KIT_ORIGINS = {KIT_ORIGIN, "github.com/furenzhong/ai_codex_project_os_starter_kit"}
@@ -141,7 +146,7 @@ def target_root(value: str) -> Path:
     return root
 
 
-def safe_path(root: Path, relative: Any) -> Path:
+def safe_path(root: Path, relative: Any, *, inspect_filesystem: bool = True) -> Path:
     root = root.resolve()
     if not isinstance(relative, str) or not relative.strip():
         raise ProjectOSError("Managed paths must be nonempty relative strings.")
@@ -156,6 +161,8 @@ def safe_path(root: Path, relative: Any) -> Path:
     if any(p.endswith((" ", ".")) or re.fullmatch(r"(?i)(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\..*)?", p) for p in parts):
         raise ProjectOSError(f"Ambiguous or reserved filesystem names are not allowed: {relative}")
     path = root.joinpath(*parts)
+    if not inspect_filesystem:
+        return path
     cursor = root
     for part in parts:
         cursor = cursor / part
@@ -192,7 +199,7 @@ def manifest_shape(root: Path, data: dict[str, Any]) -> None:
         raise ProjectOSError("sources must map exactly rules, status, handoff, and decisions.")
     names = list(sources.values()) + [data.get("tasks_dir"), data.get("evidence_dir")]
     paths = [safe_path(root, name) for name in names]
-    reserved = {root / MANIFEST, root / "AGENTS.md", root / "CLAUDE.md", root / "scripts/project_os.py"}
+    reserved = {root / MANIFEST, root / ADOPTION, root / "AGENTS.md", root / "CLAUDE.md", root / "scripts/project_os.py"}
     for index, path in enumerate(paths):
         rules_entry = names[index] == sources["rules"] and path == root / "AGENTS.md"
         if path in reserved and not rules_entry:
@@ -245,6 +252,11 @@ Use existing code, tests, and observed behavior to check claims about reality.
 Keep one authoritative source for each fact; link to task evidence instead of
 copying task state into multiple documents. Add detail only when it prevents a
 specific recurring mistake.
+
+Backlogs keep task status, the next action and a topic link, rather than copying
+the topic's requirements, constraints or pending choices. When the current work
+touches a duplicate entry, replace that duplicate with a reference only after
+confirming the topic preserves the full content. Do not start unrelated cleanup.
 
 Only on an explicit user request for document inventory or cleanup, consolidate
 within the requested scope (all project documents or specified files/topics).
@@ -473,6 +485,20 @@ def build_plan(source: Path, target: Path, mapping_file: str | None) -> tuple[di
         operations.append({"path": name, "action": "reuse" if before == after else ("append" if path.exists() else "create"), "purpose": "agent entry", "before": before if path.exists() else None, "after": after})
     add_file("scripts/project_os.py", Path(__file__).read_bytes(), "offline checker", adopt=bool(current))
     add_file(MANIFEST, json_bytes(data), "governance mapping", adopt=bool(current))
+    if not current:
+        adopted = {
+            "schema_version": 1, "kind": "governance-adoption", "source": source_identity,
+            "source_tool_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            "files": [
+                {"path": op["path"], "purpose": op["purpose"], "action": op["action"],
+                 "origin": "reused-project" if op["action"] == "reuse" else
+                           "entry-appended" if op["action"] == "append" else "kit-created",
+                 "adopted": upgrade_image(op["after"])}
+                for op in operations if not op.get("directory")
+            ],
+            "limits": "Actual installation bytes, not proof that reused project rules came from the kit or that semantics were validated.",
+        }
+        add_file(ADOPTION, json_bytes(adopted), "immutable adoption evidence")
     report = {
         "command": "plan", "ok": True, "target": str(target), "kit_version": VERSION,
         "operations": [{k: v for k, v in op.items() if k not in {"before", "after", "directory"}} for op in operations],
@@ -482,6 +508,8 @@ def build_plan(source: Path, target: Path, mapping_file: str | None) -> tuple[di
     }
     if current and current["kit_version"] != VERSION:
         report["notes"].append("An older installed version was retained. Automatic content migration is not supported; review an explicit upgrade diff.")
+    if current and not safe_path(target, ADOPTION).exists():
+        report["notes"].append("Original adoption baseline is unknown; apply does not fabricate it. Use an explicit upgrade plan to record the next actual adoption.")
     tool_path = safe_path(target, "scripts/project_os.py")
     if current and tool_path.is_file() and tool_path.read_bytes() != Path(__file__).read_bytes():
         report["notes"].append("Installed scripts/project_os.py differs from this kit and was retained. Apply is adoption, not an upgrade; reconcile the tool with an explicit reviewed diff.")
@@ -516,6 +544,352 @@ def apply_plan(target: Path, operations: list[dict[str, Any]]) -> None:
                 # Append only the governed suffix; do not rewrite original bytes.
                 with path.open("ab") as stream:
                     stream.write(op["after"][len(op["before"]):])
+
+
+UPGRADE_LIMITS = (
+    "Explicit candidates require semantic review. Missing original adoption remains unknown. "
+    "The journal retains exact content and declared provenance, not authenticated intent. "
+    "Checks and atomic file replacement are not a cross-file transaction or protection from "
+    "arbitrary external concurrent writers. Coordinate affected writers. No cleanup, network, "
+    "agent control, automatic version promotion, Git reset or business commands are performed."
+)
+UPGRADE_LOCK = ".project-os-upgrade.lock"
+
+
+def upgrade_image(raw: bytes | None) -> dict[str, str] | None:
+    if raw is None:
+        return None
+    return {"content_b64": base64.b64encode(raw).decode("ascii"),
+            "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def upgrade_bytes(value: Any) -> bytes | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict) or set(value) != {"content_b64", "sha256"}:
+        raise ProjectOSError("Invalid content image in upgrade record.")
+    try:
+        raw = base64.b64decode(value["content_b64"], validate=True)
+    except (ValueError, TypeError, binascii.Error) as exc:
+        raise ProjectOSError("Invalid base64 content in upgrade record.") from exc
+    if hashlib.sha256(raw).hexdigest() != value["sha256"]:
+        raise ProjectOSError("Upgrade content digest does not match retained bytes.")
+    return raw
+
+
+def upgrade_regular(path: Path, missing: bool = True) -> bytes | None:
+    # lstat all existing ancestors: Python 3.10 has no Path.is_junction().
+    for part in [*reversed(path.parents), path]:
+        try:
+            info = part.lstat()
+        except FileNotFoundError:
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise ProjectOSError(f"Upgrade paths must not contain links or reparse points: {part.name}")
+    if not path.exists():
+        if missing:
+            return None
+        raise ProjectOSError(f"Required upgrade input is missing: {path}")
+    info = path.stat()
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink > 1:
+        raise ProjectOSError(f"Upgrade requires a regular, non-hardlinked file: {path.name}")
+    return path.read_bytes()
+
+
+def upgrade_path(target: Path, relative: Any) -> Path:
+    path = safe_path(target, relative)
+    if path == target / ADOPTION or path == target / UPGRADE_LOCK:
+        raise ProjectOSError("Adoption evidence and the upgrade lock are not upgrade components.")
+    upgrade_regular(path)
+    return path
+
+
+def upgrade_identity(target: Path) -> dict[str, Any]:
+    info = identity(target)
+    return {"root": str(target.resolve()), "git_root": str(info["git_root"]) if info["git_root"] else None,
+            "git_common_dir": str(info["common_dir"]) if info["common_dir"] else None,
+            "origin": info["origin"]}
+
+
+def upgrade_external(target: Path, value: str | Path, exists: bool = False) -> Path:
+    # Check before resolve so links cannot disappear through canonicalization.
+    path = Path(os.path.abspath(Path(value).expanduser()))
+    upgrade_regular(path, missing=not exists)
+    path = path.resolve()
+    if path.is_relative_to(target):
+        raise ProjectOSError("Upgrade plans and journals must stay outside the target project.")
+    return path
+
+
+def upgrade_digest(data: dict[str, Any]) -> str:
+    payload = {k: v for k, v in data.items() if k != "sha256"}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def upgrade_atomic(path: Path, raw: bytes, expected: bytes | None) -> None:
+    if upgrade_regular(path) != expected:
+        raise ProjectOSError(f"File changed before write: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    mode = stat.S_IMODE(path.stat().st_mode) if expected is not None else None
+    fd, temporary = tempfile.mkstemp(prefix=".project-os-write-", dir=path.parent)
+    temp = Path(temporary)
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if mode is not None:
+            os.chmod(temp, mode)
+        if upgrade_regular(path) != expected:
+            raise ProjectOSError(f"File changed during write preparation: {path}")
+        if expected is None:
+            # Link an already flushed file into a previously absent name. Unlike
+            # replace(), this cannot overwrite a concurrent creator.
+            os.link(temp, path)
+        else:
+            os.replace(temp, path)
+    finally:
+        temp.unlink(missing_ok=True)
+
+
+def upgrade_save(path: Path, data: dict[str, Any], expected: bytes | None) -> bytes:
+    raw = json_bytes(data)
+    upgrade_atomic(path, raw, expected)
+    return raw
+
+
+def build_upgrade_plan(source: Path, target: Path, proposal_file: str, output: str) -> dict[str, Any]:
+    source, target = source.resolve(), target.resolve()
+    proposal_path = Path(os.path.abspath(Path(proposal_file).expanduser()))
+    upgrade_regular(proposal_path, missing=False)
+    proposal = read_json(proposal_path)
+    out = upgrade_external(target, output)
+    if out.exists():
+        raise ProjectOSError("Upgrade plan output already exists; choose a new file.")
+    current_path = safe_path(target, MANIFEST)
+    current = read_json(current_path) if current_path.exists() else None
+    provenance = install_identity(source, target, current)
+    provenance["tool_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    if proposal.get("schema_version") != 1 or set(proposal) != {"schema_version", "components"}:
+        raise ProjectOSError("Proposal requires schema_version=1 and components.")
+    components = proposal["components"]
+    if not isinstance(components, list) or not components:
+        raise ProjectOSError("Proposal components must be a nonempty list.")
+    ops, inputs, seen = [], {str(proposal_path.resolve())}, []
+    allowed = {"component", "path", "reason", "candidate", "base", "upstream", "mode", "merge_reason"}
+    for item in components:
+        if not isinstance(item, dict) or set(item) - allowed:
+            raise ProjectOSError("Unknown proposal component fields.")
+        for key in ("component", "path", "reason", "candidate"):
+            if not isinstance(item.get(key), str) or not item[key].strip():
+                raise ProjectOSError(f"Each proposal component requires {key}.")
+        path = upgrade_path(target, item["path"])
+        relative = path.relative_to(target).as_posix()
+        folded = relative.casefold()
+        if any(folded == old or folded.startswith(old + "/") or old.startswith(folded + "/") for old in seen):
+            raise ProjectOSError("Duplicate or overlapping upgrade component paths.")
+        seen.append(folded)
+        before = upgrade_regular(path)
+
+        def material(key: str) -> bytes:
+            name = item.get(key)
+            if not isinstance(name, str) or not name.strip():
+                raise ProjectOSError(f"Invalid {key} input path.")
+            candidate = Path(name).expanduser()
+            if not candidate.is_absolute():
+                candidate = proposal_path.parent / candidate
+            candidate = Path(os.path.abspath(candidate))
+            raw = upgrade_regular(candidate, missing=False)
+            inputs.add(str(candidate.resolve()))
+            return raw  # type: ignore[return-value]
+
+        after = material("candidate")
+        have_base = "base" in item
+        if have_base != ("upstream" in item):
+            raise ProjectOSError("base and upstream must be supplied together.")
+        base = material("base") if have_base else None
+        upstream = material("upstream") if have_base else None
+        mode = item.get("mode", "candidate" if have_base else "current_only")
+        if not isinstance(mode, str) or mode not in ({"candidate", "merged"} if have_base else {"current_only"}):
+            raise ProjectOSError("Unknown comparison mode for available baseline.")
+        conflict = have_base and before != base and upstream != base and before != upstream
+        merge_reason = item.get("merge_reason", "")
+        if not isinstance(merge_reason, str):
+            raise ProjectOSError("merge_reason must be a string.")
+        if (conflict or mode == "merged") and (mode != "merged" or not merge_reason.strip()):
+            raise ProjectOSError(f"Local and upstream changes require an explicit merged candidate and merge_reason: {relative}")
+        try:
+            diff = "".join(difflib.unified_diff((before or b"").decode("utf-8").splitlines(keepends=True),
+                                               after.decode("utf-8").splitlines(keepends=True),
+                                               fromfile="before/" + relative, tofile="after/" + relative))
+        except UnicodeDecodeError:
+            diff = "Non-UTF-8 content; compare retained bytes and hashes."
+        ops.append({"component": item["component"], "path": relative, "reason": item["reason"],
+                    "mode": mode, "old_baseline_unknown": not have_base, "merge_reason": merge_reason,
+                    "before": upgrade_image(before), "after": upgrade_image(after),
+                    "base": upgrade_image(base), "upstream": upgrade_image(upstream), "diff": diff})
+    if str(out) in inputs:
+        raise ProjectOSError("Plan output conflicts with an input file.")
+    plan = {"schema_version": 1, "kind": "governance-upgrade-plan", "target": upgrade_identity(target),
+            "observed_head": git(target, "rev-parse", "HEAD"), "source": provenance,
+            "created_at": datetime.now().astimezone().isoformat(), "inputs": sorted(inputs),
+            "operations": ops, "limits": UPGRADE_LIMITS}
+    plan["sha256"] = upgrade_digest(plan)
+    upgrade_save(out, plan, None)
+    return {"command": "upgrade-plan", "ok": True, "plan": str(out),
+            "changes": sum(op["before"] != op["after"] for op in ops),
+            "operations": [{"path": op["path"], "action": op["mode"]} for op in ops], "limits": UPGRADE_LIMITS}
+
+
+def validate_upgrade_plan(target: Path, plan: dict[str, Any], *, recovery: bool = False) -> list[dict[str, Any]]:
+    target = target.resolve()
+    if plan.get("schema_version") != 1 or plan.get("kind") != "governance-upgrade-plan":
+        raise ProjectOSError("Unsupported upgrade plan.")
+    if plan.get("sha256") != upgrade_digest(plan):
+        raise ProjectOSError("Plan changed or is incomplete; regenerate it rather than editing retained content.")
+    if plan.get("target") != upgrade_identity(target):
+        raise ProjectOSError("Upgrade target identity differs from the planned project.")
+    ops = plan.get("operations")
+    if not isinstance(ops, list) or not ops:
+        raise ProjectOSError("Upgrade plan has no operations.")
+    paths = []
+    for op in ops:
+        if not isinstance(op, dict):
+            raise ProjectOSError("Invalid upgrade operation.")
+        path = safe_path(target, op.get("path"), inspect_filesystem=False) if recovery else upgrade_path(target, op.get("path"))
+        if path in {target / ADOPTION, target / UPGRADE_LOCK}:
+            raise ProjectOSError("Reserved upgrade component path.")
+        folded = path.relative_to(target).as_posix().casefold()
+        if any(folded == p or folded.startswith(p + "/") or p.startswith(folded + "/") for p in paths):
+            raise ProjectOSError("Duplicate or overlapping upgrade paths.")
+        paths.append(folded)
+        upgrade_bytes(op.get("before"))
+        if upgrade_bytes(op.get("after")) is None:
+            raise ProjectOSError("Upgrade plans do not delete components.")
+        upgrade_bytes(op.get("base"))
+        upgrade_bytes(op.get("upstream"))
+    return ops
+
+
+def upgrade_lock(target: Path) -> Path:
+    path = safe_path(target, UPGRADE_LOCK)
+    try:
+        with path.open("xb") as stream:
+            stream.write(json_bytes({"pid": os.getpid(), "created_at": datetime.now().astimezone().isoformat()}))
+            stream.flush()
+            os.fsync(stream.fileno())
+    except FileExistsError as exc:
+        raise ProjectOSError("An upgrade lock exists. Inspect its owner and journal before removing a stale lock; do not assume the previous writer stopped.") from exc
+    return path
+
+
+def apply_upgrade(target: Path, plan_file: str, journal_file: str) -> dict[str, Any]:
+    target = target.resolve()
+    plan_path = upgrade_external(target, plan_file, exists=True)
+    plan = read_json(plan_path)
+    ops = validate_upgrade_plan(target, plan)
+    journal_path = upgrade_external(target, journal_file)
+    if journal_path.exists() or str(journal_path) in {str(plan_path), *plan.get("inputs", [])}:
+        raise ProjectOSError("Journal must be a new path distinct from plan and input files.")
+    lock = upgrade_lock(target)
+    try:
+        for op in ops:
+            if upgrade_regular(upgrade_path(target, op["path"])) != upgrade_bytes(op["before"]):
+                raise ProjectOSError(f"Target changed after planning: {op['path']}; replan affected changes.")
+        journal = {"schema_version": 1, "kind": "governance-upgrade-journal", "plan": plan,
+                   "status": "applying", "entries": [{"path": op["path"], "state": "pending"} for op in ops]}
+        saved = upgrade_save(journal_path, journal, None)
+        for op, entry in zip(ops, journal["entries"]):
+            try:
+                path = upgrade_path(target, op["path"])
+                before, after = upgrade_bytes(op["before"]), upgrade_bytes(op["after"])
+                if upgrade_regular(path) != before:
+                    raise ProjectOSError(f"Target changed before component write: {op['path']}")
+                if before == after:
+                    entry["state"] = "unchanged"
+                    saved = upgrade_save(journal_path, journal, saved)
+                    continue
+                entry["state"] = "intent"
+                saved = upgrade_save(journal_path, journal, saved)
+                upgrade_atomic(path, after, before)  # type: ignore[arg-type]
+                entry["state"] = "applied"
+                saved = upgrade_save(journal_path, journal, saved)
+            except (OSError, ProjectOSError) as exc:
+                # On a journal write failure the durable intent still contains
+                # both byte images. Recovery must inspect actual content.
+                entry["error"] = str(exc)
+                journal["status"] = "partial_failure"
+                try:
+                    saved = upgrade_save(journal_path, journal, saved)
+                except (OSError, ProjectOSError):
+                    pass
+                return {"command": "upgrade-apply", "ok": False, "journal": str(journal_path),
+                        "applied": [e["path"] for e in journal["entries"] if e["state"] == "applied"],
+                        "errors": [{"path": op["path"], "message": str(exc)}], "limits": UPGRADE_LIMITS}
+        journal["status"] = "applied"
+        upgrade_save(journal_path, journal, saved)
+        return {"command": "upgrade-apply", "ok": True, "journal": str(journal_path),
+                "applied": [e["path"] for e in journal["entries"] if e["state"] == "applied"], "limits": UPGRADE_LIMITS}
+    finally:
+        lock.unlink(missing_ok=True)
+
+
+def rollback_upgrade(target: Path, journal_file: str) -> dict[str, Any]:
+    target = target.resolve()
+    journal_path = upgrade_external(target, journal_file, exists=True)
+    saved = upgrade_regular(journal_path, missing=False)
+    journal = read_json(journal_path)
+    if journal.get("schema_version") != 1 or journal.get("kind") != "governance-upgrade-journal":
+        raise ProjectOSError("Unsupported upgrade journal.")
+    plan = journal.get("plan")
+    if not isinstance(plan, dict):
+        raise ProjectOSError("Journal is missing its self-contained plan.")
+    ops = validate_upgrade_plan(target, plan, recovery=True)
+    entries = journal.get("entries")
+    if not isinstance(entries, list) or len(entries) != len(ops):
+        raise ProjectOSError("Journal entries do not match the plan.")
+    allowed = {"pending", "intent", "applied", "unchanged", "rollback_intent", "rolled_back", "conflict"}
+    for op, entry in zip(ops, entries):
+        if (not isinstance(entry, dict) or entry.get("path") != op["path"]
+                or not isinstance(entry.get("state"), str) or entry["state"] not in allowed):
+            raise ProjectOSError("Invalid journal entry; inspect retained evidence before recovery.")
+    conflicts, restored = [], []
+    lock = upgrade_lock(target)
+    try:
+        for op, entry in reversed(list(zip(ops, entries))):
+            if entry["state"] in {"pending", "unchanged", "rolled_back"}:
+                continue  # Never claim writes merely because someone made a plan.
+            try:
+                path = upgrade_path(target, op["path"])
+                before, after = upgrade_bytes(op["before"]), upgrade_bytes(op["after"])
+                actual = upgrade_regular(path)
+                if actual == before:
+                    entry["state"] = "rolled_back"
+                elif actual == after:
+                    entry["state"] = "rollback_intent"
+                    saved = upgrade_save(journal_path, journal, saved)
+                    if before is None:
+                        if upgrade_regular(path) != after:
+                            raise ProjectOSError("File changed before removal of this upgrade's new file.")
+                        path.unlink()
+                    else:
+                        upgrade_atomic(path, before, after)
+                    entry["state"] = "rolled_back"
+                    restored.append(op["path"])
+                else:
+                    raise ProjectOSError("Later content differs; preserve it and review an inverse patch.")
+                entry.pop("error", None)
+            except (OSError, ProjectOSError) as exc:
+                entry["state"] = "conflict"
+                entry["error"] = str(exc)
+                conflicts.append({"path": op["path"], "message": str(exc)})
+            saved = upgrade_save(journal_path, journal, saved)
+        journal["status"] = "rollback_conflicts" if conflicts else "rolled_back"
+        upgrade_save(journal_path, journal, saved)
+        return {"command": "upgrade-rollback", "ok": not conflicts, "journal": str(journal_path),
+                "restored": restored, "errors": conflicts, "limits": UPGRADE_LIMITS}
+    finally:
+        lock.unlink(missing_ok=True)
 
 
 def context_path(root: Path, relative: Any) -> Path:
@@ -1119,16 +1493,30 @@ def inventory(root: Path) -> dict[str, Any]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("plan", "apply", "check", "snapshot", "inventory"))
+    parser.add_argument("command", choices=("plan", "apply", "check", "snapshot", "inventory", "upgrade-plan", "upgrade-apply", "upgrade-rollback"))
     parser.add_argument("--target", required=True, help="Existing project root; never a destination to clone or overwrite.")
     parser.add_argument("--mapping", help="JSON file relative to the current working directory. Its sources/tasks_dir/evidence_dir paths are relative to --target; existing mapped documents are adopted.")
     parser.add_argument("--json", action="store_true", help="Emit a machine-readable report.")
+    parser.add_argument("--proposal", help="Explicit component candidates for upgrade-plan.")
+    parser.add_argument("--out", help="New self-contained plan outside the target.")
+    parser.add_argument("--plan", help="Existing self-contained upgrade plan.")
+    parser.add_argument("--journal", help="External adoption/rollback journal; new for upgrade-apply.")
     args = parser.parse_args(argv)
     try:
         target = target_root(args.target)
         if args.mapping and args.command not in {"plan", "apply"}:
             raise ProjectOSError("--mapping is only valid for plan and apply.")
-        if args.command in {"plan", "apply"}:
+        permitted = {"upgrade-plan": {"proposal", "out"}, "upgrade-apply": {"plan", "journal"}, "upgrade-rollback": {"journal"}}
+        supplied = {key for key in ("proposal", "out", "plan", "journal") if getattr(args, key)}
+        if supplied != permitted.get(args.command, set()):
+            raise ProjectOSError("Upgrade command arguments are missing or not applicable to this command.")
+        if args.command == "upgrade-plan":
+            report = build_upgrade_plan(Path(__file__).resolve().parents[1], target, args.proposal, args.out)
+        elif args.command == "upgrade-apply":
+            report = apply_upgrade(target, args.plan, args.journal)
+        elif args.command == "upgrade-rollback":
+            report = rollback_upgrade(target, args.journal)
+        elif args.command in {"plan", "apply"}:
             source = Path(__file__).resolve().parents[1]
             report, operations = build_plan(source, target, args.mapping)
             if args.command == "apply":
@@ -1141,13 +1529,19 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
-        qualifier = "read-only document signals" if args.command == "inventory" else "structural checks only"
+        qualifier = "explicit candidate and file-state checks" if args.command.startswith("upgrade-") else "read-only document signals" if args.command == "inventory" else "structural checks only"
         print(f"{args.command}: {'PASS' if report['ok'] else 'FAIL'} ({qualifier})")
         if args.command == "inventory" and "documents" in report:
             print(f"Documents: {len(report['documents'])}; reading entrypoints: {len(report['reading_entrypoints'])}; working: {len(report['working_documents'])}; evidence: {len(report['evidence_documents'])}; archive: {len(report['archive_documents'])}; unclassified: {len(report['unclassified'])}")
             print(f"Exact duplicate groups: {len(report['duplicate_candidates'])}; skipped paths: {len(report['skipped_paths'])}. Use --json for paths, metadata, and scan scope.")
         if "changes" in report:
             print(f"Planned changes: {report['changes']}")
+        for key in ("plan", "journal"):
+            if key in report:
+                print(f"{key}: {report[key]}")
+        for key in ("applied", "restored"):
+            for path in report.get(key, []):
+                print(f"  {key}: {path}")
         for operation in report.get("operations", []):
             print(f"  {operation['action']}: {operation['path']}")
         for note in report.get("notes", []):
