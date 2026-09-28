@@ -1,6 +1,6 @@
 # 当前状态
 
-更新：2026-09-28 · 工作区实现版本：1.5.0，尚未发布。本轮验证及采用仍在进行；此前正式版本 1.4.0 的发布身份、下载包和 CI 结果见 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)；工作区版本号本身不证明已发布。
+更新：2026-09-28 · 实现版本：1.5.0，代码及目标局部采用已完成；尚无 v1.5.0 标签或发行包。此前正式版本 1.4.0 的发布身份、下载包和 CI 结果见 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)；工作区版本号本身不证明发行包已发布。
 
 ## 当前目标
 
@@ -45,7 +45,7 @@ v1.1.0 已实现增量接入工具、单一事实来源映射和执行合同，�
 
 ## 下一步
 
-2026-09-28 用户在保存[方案](../03_DELIVERY/CONTEXT_CAPTURE_IMPLEMENTATION_PLAN.md)后授权落实。当前正在实现并验证私有事件记录、语义核对、可选 hooks、覆盖与恢复，以及目标项目局部采用。实际接口见[操作指南](../02_TECH/CONTEXT_CAPTURE.md)。发布和目标启用不能由代码存在推定，验证完成后在此记录最终结果。
+2026-09-28 用户在保存[方案](../03_DELIVERY/CONTEXT_CAPTURE_IMPLEMENTATION_PLAN.md)后授权落实。记录组件、语义核对、可选 hooks、恢复与目标局部采用已完成。真实目标 Claude 的启动/输入/结果已捕获并核对；桌面 Codex 能发现配置，但原生信任尚未完成，仍不可宣称自动捕获。独立 Agent 从实际恢复输出识别故意错误的 no_change；原生自动压缩、Codex实际事件和长期收益待验证。实际操作与停用见[指南](../02_TECH/CONTEXT_CAPTURE.md)，本轮证据见上方 v1.5 记录。
 
 已完成[升级方案](../03_DELIVERY/GOVERNANCE_UPGRADE_PLAN.md)的本轮基线、隔离适配、独立验证、通用工具与目标采用。使用入口见[升级指南](../03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md)。发布时按实际提交核验 Windows/Linux × Python 3.10/3.14 的四组 CI，并在上方 Release 保留运行链接；原 v1.3 的 CI 不能替代本轮验证。
 
