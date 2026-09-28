@@ -2,6 +2,8 @@
 
 English · [简体中文](README.md)
 
+Release: [v1.5.0 notes and download](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0). Existing projects adopt relevant changes through the [upgrade guide](docs/03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md); publishing does not modify projects or enable hooks automatically.
+
 Keep the same project moving correctly when you switch conversations, models, or execution tools.
 
 Awoo Vibe Coding Governance is a lightweight governance kit that integrates into **existing projects**. It helps an AI find effective requirements, current facts, unfinished work, and acceptance evidence. It includes additive installation and local checking tools. You can give this repository link directly to the AI already working on your project.

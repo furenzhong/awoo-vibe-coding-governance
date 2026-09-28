@@ -1,6 +1,6 @@
 # 当前状态
 
-更新：2026-09-28 · 实现版本：1.5.0，代码及目标局部采用已完成；尚无 v1.5.0 标签或发行包。此前正式版本 1.4.0 的发布身份、下载包和 CI 结果见 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)；工作区版本号本身不证明发行包已发布。
+更新：2026-09-28 · 工具包版本：1.5.0。发布身份、固定提交、下载包及对应 CI 结果以 [v1.5.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0) 为准；历史正式版本保留在 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)。版本号及发行包均不代表已有项目已经升级或运行中的会话已经启用。
 
 ## 当前目标
 
@@ -8,7 +8,7 @@
 
 ## 实现与验证
 
-工作区 v1.5.0 实现可选 `bind/capture/reconcile/status/resume` 和项目 hook 采用计划。事件及核对回执保存在 Git 忽略的私有目录，摘要为历史证据；覆盖按会话派生，未观察尾部不推定完整。默认安装不启用采集，已有项目用显式候选升级。104 项本地回归、结构和链接检查通过；Claude 2.1.280 的真实用户输入、结果、手动压缩前后与恢复注入已验证，自动压缩未测。Codex Desktop 新宿主具备接口但 hooks 尚未信任/实测；终端旧 CLI 不支持完整事件。详情与逐项边界见 [v1.5 验证记录](../05_HANDOFF/evidence/2026-09-28-v1.5-validation.md)。
+v1.5.0 实现可选 `bind/capture/reconcile/status/resume` 和项目 hook 采用计划。事件及核对回执保存在 Git 忽略的私有目录，摘要为历史证据；覆盖按会话派生，未观察尾部不推定完整。默认安装不启用采集，已有项目用显式候选升级。104 项本地回归、结构和链接检查通过；Claude 2.1.280 的真实用户输入、结果、手动压缩前后与恢复注入已验证，自动压缩未测。Codex Desktop 新宿主具备接口但 hooks 尚未信任/实测；终端旧 CLI 不支持完整事件。详情与逐项边界见 [v1.5 验证记录](../05_HANDOFF/evidence/2026-09-28-v1.5-validation.md)。
 
 v1.4.0 在成熟自定义治理的隔离样本验证后，实现显式 `upgrade-plan/upgrade-apply/upgrade-rollback`：保存完整候选和比较依据，缺旧基线如实记录，写前检查变化，逐项留存应用意图与结果，回退保留后来工作。首次安装增加实际采用基线；重跑 `apply` 仍不升级或补造旧历史。工具不自动做语义合并、推送、版本检测或文档清理。
 

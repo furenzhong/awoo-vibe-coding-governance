@@ -2,6 +2,8 @@
 
 [English](README.en.md) · 简体中文
 
+正式版本：[v1.5.0 发布说明与下载](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0)。已有项目按[升级指南](docs/03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md)局部采用，发布不会自动改动项目或开启 hooks。
+
 让 AI 换会话、换模型、换执行工具之后，仍能接着把同一个项目做对。
 
 Awoo Vibe Coding Governance 是一个可接入**已有项目**的轻量治理工具包。它帮助 AI 找到有效要求、当前事实、未完成现场和验收依据，并提供增量接入与检查脚本。你可以直接把这个仓库链接发给正在开发项目的 AI。
