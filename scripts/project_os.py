@@ -36,6 +36,7 @@ import binascii
 from datetime import datetime
 import difflib
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -48,7 +49,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 SCHEMA_VERSION = 1
 MANIFEST = "project-os.json"
 ADOPTION = ".project-os-adoption.json"
@@ -286,6 +287,13 @@ content, references, active tasks, and retention needs; age alone is insufficien
 
 ## 跨会话任务 / Cross-session tasks
 
+If this project explicitly enables project-os-context.json, follow
+project-os/CONTEXT_CAPTURE.md for event reconciliation and recovery. Native
+summaries are historical evidence. Check relevant pending inputs and current
+sources before dependent work; capture alone proves neither semantic accuracy
+nor delivery. Ordinary installation does not enable capture. Discussion does
+not invent an execution task, and these events never initiate document cleanup.
+
 For delegated or recoverable work, keep the existing task record as the sole
 lifecycle source. Retain a versioned dispatch snapshot of the goal, constraints
 and accessible sources, rejected choices and reasons, assumptions, non-goals,
@@ -484,6 +492,15 @@ def build_plan(source: Path, target: Path, mapping_file: str | None) -> tuple[di
             raise ProjectOSError(f"Cannot append to hardlinked agent entry: {name}")
         operations.append({"path": name, "action": "reuse" if before == after else ("append" if path.exists() else "create"), "purpose": "agent entry", "before": before if path.exists() else None, "after": after})
     add_file("scripts/project_os.py", Path(__file__).read_bytes(), "offline checker", adopt=bool(current))
+    if not current:
+        # Inert tools only. Native hooks require a separate explicit setup plan.
+        for name in ("project_os_context.py", "project_os_context_hooks.py"):
+            asset = Path(__file__).with_name(name)
+            if asset.is_file():
+                add_file("scripts/" + name, asset.read_bytes(), "optional context tool")
+        guide = Path(__file__).resolve().parent.parent / "docs/02_TECH/CONTEXT_CAPTURE.md"
+        if guide.is_file():
+            add_file("project-os/CONTEXT_CAPTURE.md", guide.read_bytes(), "optional context guide")
     add_file(MANIFEST, json_bytes(data), "governance mapping", adopt=bool(current))
     if not current:
         adopted = {
@@ -1115,6 +1132,37 @@ def check_task_context(root: Path, task: dict[str, Any], relative: str) -> dict[
     return result
 
 
+def capture_report(root: Path) -> dict[str, Any]:
+    """Read optional capture evidence without loading payloads into the report."""
+    config_path = safe_path(root, "project-os-context.json")
+    store_path = safe_path(root, ".project-os-local/context")
+    if not config_path.exists() and not store_path.exists():
+        return {"state": "not_configured", "bindings": []}
+    module_path = Path(__file__).with_name("project_os_context.py")
+    if not module_path.is_file():
+        return {"state": "tool_unavailable", "bindings": [], "limits": "Optional capture tool is not installed; no coverage was checked."}
+    spec = importlib.util.spec_from_file_location("_awoo_context_capture", module_path)
+    module = importlib.util.module_from_spec(spec)
+    previous_bytecode = sys.dont_write_bytecode
+    try:
+        sys.dont_write_bytecode = True
+        spec.loader.exec_module(module)
+    finally:
+        sys.dont_write_bytecode = previous_bytecode
+    try:
+        result = module.context_status(root)
+        config = read_json(config_path) if config_path.exists() else {}
+        if config and (config.get("schema_version") != 1 or type(config.get("enabled")) is not bool):
+            raise ProjectOSError("Invalid optional context capture configuration.")
+        result["enabled"] = config.get("enabled", False)
+        result["adapters"] = config.get("adapters", {})
+        if result["state"] == "not_configured" and config:
+            result["state"] = "configured_unverified"
+        return result
+    except module.ContextError as exc:
+        raise ProjectOSError(str(exc)) from None
+
+
 def check_project(root: Path) -> dict[str, Any]:
     root = root.resolve()
     errors: list[dict[str, str]] = []
@@ -1293,6 +1341,11 @@ def check_project(root: Path) -> dict[str, Any]:
         report["context"]["state"] = "records_invalid" if any(item["code"].startswith("context_") for item in errors) else ("partially_covered" if report["context"]["legacy"] else "tracked_records_checked")
     elif report["context"]["legacy"]:
         report["context"]["state"] = "legacy_only"
+    try:
+        report["context_capture"] = capture_report(root)
+    except (ProjectOSError, OSError) as exc:
+        report["context_capture"] = {"state": "records_invalid"}
+        issue("context_capture", str(exc), "project-os-context.json")
     report["ok"] = not errors
     return report
 

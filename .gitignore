@@ -31,3 +31,4 @@ coverage/
 
 # Local development and release work
 work/
+/.project-os-local/

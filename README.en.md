@@ -118,6 +118,14 @@ Research notes, candidate designs, and phase plans should not all enter every AI
 
 Cleanup starts only on an explicit user request, such as "Use document governance to clean up all project documents, plans, and Markdown" or "Organize only the proposals under docs/export". Adoption, task closure, replaced decisions, phase handoffs, conflicts, and new sessions neither start cleanup nor prompt the user to start it. Once requested, inspect evidence first, and ask only about unresolved user intent, a unique constraint that might be lost, or deletion outside existing authorization. State the specific sources, recommendation, and impact. While awaiting an answer, preserve the material and pause only dependent actions.
 
+## Retaining context across native compaction
+
+v1.5 adds optional [session event capture](docs/02_TECH/CONTEXT_CAPTURE.md). Once explicitly adopted in a project, supported native hooks retain input, compaction, and result evidence privately. During normal work, the AI writes meaningful changes to existing topic documents or checkpoints. Capture, reconciliation, persisted changes, and executor adoption remain separate facts. A new session can discover pending input and unknown coverage instead of relying solely on an old summary.
+
+Default installation provides the tools; **it does not enable session capture**. Adoption checks the actual host and version, configures project hooks, and follows the host's trust mechanism. Claude can supply readable `compact_summary`; Codex summary text is not assumed available, and event support varies by host version. Tools without native integration use model-assisted records with explicit coverage limits. See [current status](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md) for the actual validation scope.
+
+Events stay in Git-ignored `.project-os-local/`, with common credentials filtered and truncation declared by default. They are not uploaded to this repository. Native summaries remain historical evidence and cannot override later decisions. `status/resume` report captured, pending, and unknown coverage; these records do not prove semantic accuracy or real-time synchronization. Each adapter can be disabled while retaining evidence. No event starts or prompts document cleanup.
+
 ## How to tell whether it helps when the AI uses it
 
 Ask the AI for a short result receipt instead of reviewing every template yourself:

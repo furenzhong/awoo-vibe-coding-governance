@@ -11,6 +11,7 @@ This is the reusable governance **source kit**, not a business project. It helps
 - Upgrading existing or custom governance: `docs/03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md`.
 - Delegating work: `docs/02_TECH/HARNESS_CONTRACT.md`.
 - Task context, corrections, and recovery: `docs/02_TECH/TASK_CONTEXT.md`.
+- Optional native event capture and reconciliation: `docs/02_TECH/CONTEXT_CAPTURE.md`.
 - Testing whether governance helps: `docs/03_DELIVERY/GOVERNANCE_TRIAL.md`.
 - Structure and document ownership: `docs/00_PROJECT_CONTROL/PROJECT_STRUCTURE_AND_NAMING_SPEC.md` and `DOCUMENT_CATALOG.md` in that directory.
 - Document lifecycle and context reduction: `docs/00_PROJECT_CONTROL/DOCUMENT_LIFECYCLE.md`.

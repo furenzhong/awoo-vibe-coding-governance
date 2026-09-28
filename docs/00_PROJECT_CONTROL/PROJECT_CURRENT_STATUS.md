@@ -1,12 +1,14 @@
 # 当前状态
 
-更新：2026-09-28 · 工具包版本：1.4.0。发布身份、下载包和对应提交的 CI 结果见 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)；工作区版本号本身不证明已发布。
+更新：2026-09-28 · 工作区实现版本：1.5.0，尚未发布。本轮验证及采用仍在进行；此前正式版本 1.4.0 的发布身份、下载包和 CI 结果见 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)；工作区版本号本身不证明已发布。
 
 ## 当前目标
 
 让用户把仓库链接交给 AI 后，能将治理增量接入现有项目；通过 AI 可执行的检查与接手试验，观察它是否减少失误和人工协调。
 
 ## 实现与验证
+
+工作区 v1.5.0 实现可选 `bind/capture/reconcile/status/resume` 和项目 hook 采用计划。事件及核对回执保存在 Git 忽略的私有目录，摘要为历史证据；覆盖按会话派生，未观察尾部不推定完整。默认安装不启用采集，已有项目用显式候选升级。104 项本地回归、结构和链接检查通过；Claude 2.1.280 的真实用户输入、结果、手动压缩前后与恢复注入已验证，自动压缩未测。Codex Desktop 新宿主具备接口但 hooks 尚未信任/实测；终端旧 CLI 不支持完整事件。详情与逐项边界见 [v1.5 验证记录](../05_HANDOFF/evidence/2026-09-28-v1.5-validation.md)。
 
 v1.4.0 在成熟自定义治理的隔离样本验证后，实现显式 `upgrade-plan/upgrade-apply/upgrade-rollback`：保存完整候选和比较依据，缺旧基线如实记录，写前检查变化，逐项留存应用意图与结果，回退保留后来工作。首次安装增加实际采用基线；重跑 `apply` 仍不升级或补造旧历史。工具不自动做语义合并、推送、版本检测或文档清理。
 
@@ -42,6 +44,8 @@ v1.1.0 已实现增量接入工具、单一事实来源映射和执行合同，�
 增量接入和精简入口能减少真实项目里的用户纠偏与重复工作。当前尚无一段时间的使用数据，不能宣称已经提升开发效率。
 
 ## 下一步
+
+2026-09-28 用户在保存[方案](../03_DELIVERY/CONTEXT_CAPTURE_IMPLEMENTATION_PLAN.md)后授权落实。当前正在实现并验证私有事件记录、语义核对、可选 hooks、覆盖与恢复，以及目标项目局部采用。实际接口见[操作指南](../02_TECH/CONTEXT_CAPTURE.md)。发布和目标启用不能由代码存在推定，验证完成后在此记录最终结果。
 
 已完成[升级方案](../03_DELIVERY/GOVERNANCE_UPGRADE_PLAN.md)的本轮基线、隔离适配、独立验证、通用工具与目标采用。使用入口见[升级指南](../03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md)。发布时按实际提交核验 Windows/Linux × Python 3.10/3.14 的四组 CI，并在上方 Release 保留运行链接；原 v1.3 的 CI 不能替代本轮验证。
 
