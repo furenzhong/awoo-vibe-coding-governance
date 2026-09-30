@@ -1,0 +1,661 @@
+{
+  "schema_version": 1,
+  "baseline_revision": "fc8010fd4d20c6f8f4ec018e950811cebc03885a",
+  "candidate_sha256": "7a10f6ff3c22e7149c752db70328f342879b00ad02f2da07a457e675ea22d8ee",
+  "python": "3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.22631-SP0",
+  "timing": "Warm local filesystem; uninstrumented median and samples; call includes fixed-ID mocks, written-record verification and fixture write cleanup. JSON and Path read calls/bytes measured in a separate invocation, including written-record verification; filesystem metadata and Git internal reads are not counted.",
+  "limitations": [
+    "No durable index; capture and reconcile still parse full selected-stream histories.",
+    "Status and resume still parse all included events and receipts; storage grows without automatic cleanup.",
+    "Reads are query observations, not an atomic workspace snapshot.",
+    "No real sessions, network calls, native hook latency, concurrent business writes, or cold filesystem measurements.",
+    "At 5000 events in one stream, capture still exceeded the configured 10-second native hook timeout; this work does not resolve that large-stream timeout risk."
+  ],
+  "cases": [
+    {
+      "event_count": 100,
+      "receipt_count": 85,
+      "stream_count": 1,
+      "operations": {
+        "capture": {
+          "baseline": {
+            "seconds_median": 0.5357096999650821,
+            "seconds_samples": [
+              0.55142989999149,
+              0.5357096999650821,
+              0.5319639999652281
+            ],
+            "json_parses": 102,
+            "read_calls": 108,
+            "read_bytes": 156557
+          },
+          "candidate": {
+            "seconds_median": 0.5144448999781162,
+            "seconds_samples": [
+              0.5287814000621438,
+              0.5062731000361964,
+              0.5144448999781162
+            ],
+            "json_parses": 102,
+            "read_calls": 108,
+            "read_bytes": 156557
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.0413354277355467
+        },
+        "reconcile": {
+          "baseline": {
+            "seconds_median": 0.7388332000700757,
+            "seconds_samples": [
+              0.7478701000800356,
+              0.7388332000700757,
+              0.7331009999616072
+            ],
+            "json_parses": 187,
+            "read_calls": 190,
+            "read_bytes": 216664
+          },
+          "candidate": {
+            "seconds_median": 0.6860975000308827,
+            "seconds_samples": [
+              0.6787415998987854,
+              0.7164546999847516,
+              0.6860975000308827
+            ],
+            "json_parses": 187,
+            "read_calls": 190,
+            "read_bytes": 216664
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.0768632738595014
+        },
+        "status": {
+          "baseline": {
+            "seconds_median": 0.8439426999539137,
+            "seconds_samples": [
+              0.8406201999168843,
+              0.8439426999539137,
+              0.8486536999698728
+            ],
+            "json_parses": 187,
+            "read_calls": 272,
+            "read_bytes": 392436
+          },
+          "candidate": {
+            "seconds_median": 0.6288647999754176,
+            "seconds_samples": [
+              0.6288647999754176,
+              0.628401100053452,
+              0.6301786000840366
+            ],
+            "json_parses": 187,
+            "read_calls": 188,
+            "read_bytes": 214356
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.3420097610597757
+        },
+        "resume": {
+          "baseline": {
+            "seconds_median": 1.0873856999678537,
+            "seconds_samples": [
+              1.0873856999678537,
+              1.0875754000153393,
+              1.0852694000350311
+            ],
+            "json_parses": 287,
+            "read_calls": 377,
+            "read_bytes": 546168
+          },
+          "candidate": {
+            "seconds_median": 0.6344007999869063,
+            "seconds_samples": [
+              0.6511053000576794,
+              0.632868199958466,
+              0.6344007999869063
+            ],
+            "json_parses": 187,
+            "read_calls": 193,
+            "read_bytes": 216152
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.7140358271778608
+        }
+      }
+    },
+    {
+      "event_count": 100,
+      "receipt_count": 84,
+      "stream_count": 4,
+      "operations": {
+        "capture": {
+          "baseline": {
+            "seconds_median": 0.37966910004615784,
+            "seconds_samples": [
+              0.3951263999333605,
+              0.3773957999655977,
+              0.37966910004615784
+            ],
+            "json_parses": 27,
+            "read_calls": 33,
+            "read_bytes": 42640
+          },
+          "candidate": {
+            "seconds_median": 0.37501920002978295,
+            "seconds_samples": [
+              0.37090750003699213,
+              0.37501920002978295,
+              0.40335360006429255
+            ],
+            "json_parses": 27,
+            "read_calls": 33,
+            "read_bytes": 42640
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.0123990985421696
+        },
+        "reconcile": {
+          "baseline": {
+            "seconds_median": 0.4322840999811888,
+            "seconds_samples": [
+              0.43554149998817593,
+              0.4144058999372646,
+              0.4322840999811888
+            ],
+            "json_parses": 48,
+            "read_calls": 51,
+            "read_bytes": 58353
+          },
+          "candidate": {
+            "seconds_median": 0.41280699998605996,
+            "seconds_samples": [
+              0.40098409994971007,
+              0.53769679996185,
+              0.41280699998605996
+            ],
+            "json_parses": 48,
+            "read_calls": 51,
+            "read_bytes": 58353
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.0471820971926022
+        },
+        "status": {
+          "baseline": {
+            "seconds_median": 1.0102103999815881,
+            "seconds_samples": [
+              1.0874369000084698,
+              0.9892245000228286,
+              1.0102103999815881
+            ],
+            "json_parses": 192,
+            "read_calls": 276,
+            "read_bytes": 393844
+          },
+          "candidate": {
+            "seconds_median": 0.8240403999807313,
+            "seconds_samples": [
+              0.8240403999807313,
+              0.8035363999661058,
+              0.8322879000334069
+            ],
+            "json_parses": 192,
+            "read_calls": 193,
+            "read_bytes": 217884
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.2259233891993766
+        },
+        "resume": {
+          "baseline": {
+            "seconds_median": 1.0719813000177965,
+            "seconds_samples": [
+              1.0593728000530973,
+              1.1090773999458179,
+              1.0719813000177965
+            ],
+            "json_parses": 214,
+            "read_calls": 303,
+            "read_bytes": 431492
+          },
+          "candidate": {
+            "seconds_median": 0.8154279999434948,
+            "seconds_samples": [
+              0.8154279999434948,
+              1.0979351999703795,
+              0.8069758999627084
+            ],
+            "json_parses": 189,
+            "read_calls": 195,
+            "read_bytes": 217550
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.314624099358962
+        }
+      }
+    },
+    {
+      "event_count": 1000,
+      "receipt_count": 857,
+      "stream_count": 1,
+      "operations": {
+        "capture": {
+          "baseline": {
+            "seconds_median": 2.7240198000799865,
+            "seconds_samples": [
+              2.695551700075157,
+              2.7240198000799865,
+              2.740788299939595
+            ],
+            "json_parses": 1002,
+            "read_calls": 1008,
+            "read_bytes": 1527331
+          },
+          "candidate": {
+            "seconds_median": 2.4736455000238493,
+            "seconds_samples": [
+              2.4736455000238493,
+              2.45679129997734,
+              2.5088266999227926
+            ],
+            "json_parses": 1002,
+            "read_calls": 1008,
+            "read_bytes": 1527331
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.1012167265090018
+        },
+        "reconcile": {
+          "baseline": {
+            "seconds_median": 4.729161600000225,
+            "seconds_samples": [
+              4.729161600000225,
+              4.780461699934676,
+              4.722943300032057
+            ],
+            "json_parses": 1859,
+            "read_calls": 1862,
+            "read_bytes": 2123621
+          },
+          "candidate": {
+            "seconds_median": 4.390238699968904,
+            "seconds_samples": [
+              4.324912799987942,
+              4.422771699959412,
+              4.390238699968904
+            ],
+            "json_parses": 1859,
+            "read_calls": 1862,
+            "read_bytes": 2123621
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.0771991964887289
+        },
+        "status": {
+          "baseline": {
+            "seconds_median": 6.587711000000127,
+            "seconds_samples": [
+              6.588823299971409,
+              6.587711000000127,
+              6.5752369000110775
+            ],
+            "json_parses": 1859,
+            "read_calls": 2716,
+            "read_bytes": 3936034
+          },
+          "candidate": {
+            "seconds_median": 4.275844000047073,
+            "seconds_samples": [
+              4.265866799978539,
+              4.275844000047073,
+              4.290782100055367
+            ],
+            "json_parses": 1859,
+            "read_calls": 1860,
+            "read_bytes": 2121314
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.5406808573763688
+        },
+        "resume": {
+          "baseline": {
+            "seconds_median": 8.994891399983317,
+            "seconds_samples": [
+              8.953309100004844,
+              9.063979999977164,
+              8.994891399983317
+            ],
+            "json_parses": 2859,
+            "read_calls": 3721,
+            "read_bytes": 5460535
+          },
+          "candidate": {
+            "seconds_median": 4.273411400034092,
+            "seconds_samples": [
+              4.259216000093147,
+              4.273411400034092,
+              4.289799500023946
+            ],
+            "json_parses": 1859,
+            "read_calls": 1865,
+            "read_bytes": 2123108
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 2.1048503310286386
+        }
+      }
+    },
+    {
+      "event_count": 1000,
+      "receipt_count": 856,
+      "stream_count": 4,
+      "operations": {
+        "capture": {
+          "baseline": {
+            "seconds_median": 0.911075200070627,
+            "seconds_samples": [
+              0.911075200070627,
+              0.904716300079599,
+              0.936200900003314
+            ],
+            "json_parses": 252,
+            "read_calls": 258,
+            "read_bytes": 385057
+          },
+          "candidate": {
+            "seconds_median": 0.8529559000162408,
+            "seconds_samples": [
+              0.8475709999911487,
+              0.8529559000162408,
+              0.8620041999965906
+            ],
+            "json_parses": 252,
+            "read_calls": 258,
+            "read_bytes": 385057
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.0681386928131684
+        },
+        "reconcile": {
+          "baseline": {
+            "seconds_median": 1.4139950999524444,
+            "seconds_samples": [
+              1.4471002999925986,
+              1.4139950999524444,
+              1.4031293999869376
+            ],
+            "json_parses": 466,
+            "read_calls": 469,
+            "read_bytes": 534733
+          },
+          "candidate": {
+            "seconds_median": 1.331563499988988,
+            "seconds_samples": [
+              1.3035582000156865,
+              1.331563499988988,
+              1.3536265000002459
+            ],
+            "json_parses": 466,
+            "read_calls": 469,
+            "read_bytes": 534733
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.0619058722803216
+        },
+        "status": {
+          "baseline": {
+            "seconds_median": 6.701155600021593,
+            "seconds_samples": [
+              6.7261721000541,
+              6.627202000003308,
+              6.701155600021593
+            ],
+            "json_parses": 1864,
+            "read_calls": 2720,
+            "read_bytes": 3935909
+          },
+          "candidate": {
+            "seconds_median": 4.495858200010844,
+            "seconds_samples": [
+              4.536143400007859,
+              4.397060199989937,
+              4.495858200010844
+            ],
+            "json_parses": 1864,
+            "read_calls": 1865,
+            "read_bytes": 2123309
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.4905175612534733
+        },
+        "resume": {
+          "baseline": {
+            "seconds_median": 7.326876800041646,
+            "seconds_samples": [
+              7.270198100013658,
+              7.340875900001265,
+              7.326876800041646
+            ],
+            "json_parses": 2111,
+            "read_calls": 2972,
+            "read_bytes": 4315963
+          },
+          "candidate": {
+            "seconds_median": 4.483116800081916,
+            "seconds_samples": [
+              4.483116800081916,
+              4.527608299977146,
+              4.472896600025706
+            ],
+            "json_parses": 1861,
+            "read_calls": 1867,
+            "read_bytes": 2122967
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.634326547081657
+        }
+      }
+    },
+    {
+      "event_count": 5000,
+      "receipt_count": 4285,
+      "stream_count": 1,
+      "operations": {
+        "capture": {
+          "baseline": {
+            "seconds_median": 13.77541779994499,
+            "seconds_samples": [
+              13.77541779994499
+            ],
+            "json_parses": 5002,
+            "read_calls": 5008,
+            "read_bytes": 7634225
+          },
+          "candidate": {
+            "seconds_median": 12.650000200024806,
+            "seconds_samples": [
+              12.650000200024806
+            ],
+            "json_parses": 5002,
+            "read_calls": 5008,
+            "read_bytes": 7634225
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.08896581676876
+        },
+        "reconcile": {
+          "baseline": {
+            "seconds_median": 23.435266299988143,
+            "seconds_samples": [
+              23.435266299988143
+            ],
+            "json_parses": 9287,
+            "read_calls": 9290,
+            "read_bytes": 10614860
+          },
+          "candidate": {
+            "seconds_median": 21.04200639994815,
+            "seconds_samples": [
+              21.04200639994815
+            ],
+            "json_parses": 9287,
+            "read_calls": 9290,
+            "read_bytes": 10614860
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.1137372479862895
+        },
+        "status": {
+          "baseline": {
+            "seconds_median": 32.966370000038296,
+            "seconds_samples": [
+              32.966370000038296
+            ],
+            "json_parses": 9287,
+            "read_calls": 13572,
+            "read_bytes": 19694632
+          },
+          "candidate": {
+            "seconds_median": 20.883282399969175,
+            "seconds_samples": [
+              20.883282399969175
+            ],
+            "json_parses": 9287,
+            "read_calls": 9288,
+            "read_bytes": 10612552
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.5786009770229874
+        },
+        "resume": {
+          "baseline": {
+            "seconds_median": 45.05341459996998,
+            "seconds_samples": [
+              45.05341459996998
+            ],
+            "json_parses": 14287,
+            "read_calls": 18577,
+            "read_bytes": 27326027
+          },
+          "candidate": {
+            "seconds_median": 21.167520400020294,
+            "seconds_samples": [
+              21.167520400020294
+            ],
+            "json_parses": 9287,
+            "read_calls": 9293,
+            "read_bytes": 10614346
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 2.1284219289060795
+        }
+      }
+    },
+    {
+      "event_count": 5000,
+      "receipt_count": 4284,
+      "stream_count": 4,
+      "operations": {
+        "reconcile": {
+          "baseline": {
+            "seconds_median": 6.016515800030902,
+            "seconds_samples": [
+              6.016515800030902
+            ],
+            "json_parses": 2323,
+            "read_calls": 2326,
+            "read_bytes": 2655160
+          },
+          "candidate": {
+            "seconds_median": 5.558971399907023,
+            "seconds_samples": [
+              5.558971399907023
+            ],
+            "json_parses": 2323,
+            "read_calls": 2326,
+            "read_bytes": 2655160
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.0823073851632934
+        },
+        "status": {
+          "baseline": {
+            "seconds_median": 32.957328500109725,
+            "seconds_samples": [
+              32.957328500109725
+            ],
+            "json_parses": 9292,
+            "read_calls": 13576,
+            "read_bytes": 19683977
+          },
+          "candidate": {
+            "seconds_median": 21.076380699989386,
+            "seconds_samples": [
+              21.076380699989386
+            ],
+            "json_parses": 9292,
+            "read_calls": 9293,
+            "read_bytes": 10604017
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.5637091097014737
+        },
+        "resume": {
+          "baseline": {
+            "seconds_median": 35.727141199982725,
+            "seconds_samples": [
+              35.727141199982725
+            ],
+            "json_parses": 10539,
+            "read_calls": 14828,
+            "read_bytes": 21589013
+          },
+          "candidate": {
+            "seconds_median": 20.695977399940602,
+            "seconds_samples": [
+              20.695977399940602
+            ],
+            "json_parses": 9289,
+            "read_calls": 9295,
+            "read_bytes": 10603675
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.726284316491632
+        },
+        "capture": {
+          "baseline": {
+            "seconds_median": 3.3795974999666214,
+            "seconds_samples": [
+              3.3795974999666214
+            ],
+            "json_parses": 1252,
+            "read_calls": 1258,
+            "read_bytes": 1910040
+          },
+          "candidate": {
+            "seconds_median": 3.1437901000026613,
+            "seconds_samples": [
+              3.1437901000026613
+            ],
+            "json_parses": 1252,
+            "read_calls": 1258,
+            "read_bytes": 1910040
+          },
+          "identical_output_and_written_record": true,
+          "speedup": 1.075007361325987
+        }
+      }
+    }
+  ],
+  "measurement_notes": [
+    "Total event counts are per project, evenly divided among the selected number of streams. Receipt counts are included in each case.",
+    "Capture/reconcile operate on the final stream; status covers all streams; resume follows the binding replacement chain (all four streams in these fixtures).",
+    "100 and 1000 event cases use three uninstrumented timing samples per version; 5000 uses one. JSON/read counts use a separate instrumented invocation.",
+    "The 5000-event single-stream capture case was measured in a separate earlier run from the other final cases; every final case uses the identical candidate source SHA-256.",
+    "The initial pre-optimization 5000-event single-stream baseline capture observation was 12.53674980008509 seconds, above the configured 10-second hook timeout. The final safe candidate still measured 12.650000200024806 seconds in its separate capture run.",
+    "All comparisons check complete return values and, for capture/reconcile, the exact written JSON bytes after fixing generated IDs and time. This is stable-fixture equivalence, not a claim of identical handling of concurrent mutations.",
+    "Every candidate record read retains fresh checks of the full ancestor chain and per-file identity checks; no persistent index or record-format migration is introduced.",
+    "The 10-second configuration is not a measured native-host execution guarantee. Native forced termination and residual lock behavior were not tested in this benchmark."
+  ]
+}

@@ -1,8 +1,8 @@
 # 当前状态
 
-更新：2026-09-30 · 工作区候选版本：1.6.0，实施及验证进行中，尚未正式发行。当前正式发行仍为 [v1.5.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0)；历史正式版本保留在 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)。版本号及发行包均不代表已有项目已经升级或运行中的会话已经启用。
+更新：2026-09-30 · 候选版本：1.6.0，实施、验证与目标局部采用已完成，尚未正式发行。当前正式发行仍为 [v1.5.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0)；历史正式版本保留在 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)。版本号及发行包均不代表已有项目已经升级或运行中的会话已经启用。
 
-本轮按[交接与增长补强方案](../03_DELIVERY/CONTINUITY_AND_SCALE_PLAN.md)实施主动交接、操作接续与记录性能优化。源工具包验证后按明确候选局部采用到已有项目。独立接手、分规模基准、回归及实际采用未完成前不登记为通过；原始历史保留，清理主动唤醒规则保持。
+本轮按[交接与增长补强方案](../03_DELIVERY/CONTINUITY_AND_SCALE_PLAN.md)完成主动交接、操作接续与查询优化。110 项本地回归、三个真实独立 Claude 会话案例、24 项规模对照及目标局部采用已完成；范围与限制见 [v1.6 候选验证](../05_HANDOFF/evidence/2026-09-30-v1.6-validation.md)。原始历史保留，清理主动唤醒规则保持。5,000 条单流捕获仍可能超过 hook 的 10 秒限时，不能把查询提速当作长期捕获容量保证。
 
 ## 当前目标
 
@@ -10,7 +10,7 @@
 
 ## 实现与验证
 
-v1.5.0 实现可选 `bind/capture/reconcile/status/resume` 和项目 hook 采用计划。事件及核对回执保存在 Git 忽略的私有目录，摘要为历史证据；覆盖按会话派生，未观察尾部不推定完整。默认安装不启用采集，已有项目用显式候选升级。104 项本地回归、结构和链接检查通过；Claude 2.1.280 的真实用户输入、结果、手动压缩前后与恢复注入已验证，自动压缩未测。Codex Desktop 新宿主具备接口但 hooks 尚未信任/实测；终端旧 CLI 不支持完整事件。详情与逐项边界见 [v1.5 验证记录](../05_HANDOFF/evidence/2026-09-28-v1.5-validation.md)。
+v1.5.0 实现可选 `bind/capture/reconcile/status/resume` 和项目 hook 采用计划。事件及核对回执保存在 Git 忽略的私有目录，摘要为历史证据；覆盖按会话派生，未观察尾部不推定完整。默认安装不启用采集，已有项目用显式候选升级。104 项本地回归、结构和链接检查通过；Claude 2.1.280 的真实用户输入、结果、手动压缩前后与恢复注入已验证，自动压缩未测。该轮验证时 Codex Desktop 新宿主具备接口但 hooks 尚未信任/实测；后续目标启用事实见 v1.6 验证的采用部分。终端旧 CLI 不支持完整事件。详情与逐项边界见 [v1.5 验证记录](../05_HANDOFF/evidence/2026-09-28-v1.5-validation.md)。
 
 v1.4.0 在成熟自定义治理的隔离样本验证后，实现显式 `upgrade-plan/upgrade-apply/upgrade-rollback`：保存完整候选和比较依据，缺旧基线如实记录，写前检查变化，逐项留存应用意图与结果，回退保留后来工作。首次安装增加实际采用基线；重跑 `apply` 仍不升级或补造旧历史。工具不自动做语义合并、推送、版本检测或文档清理。
 
@@ -47,7 +47,7 @@ v1.1.0 已实现增量接入工具、单一事实来源映射和执行合同，�
 
 ## 下一步
 
-2026-09-28 用户在保存[方案](../03_DELIVERY/CONTEXT_CAPTURE_IMPLEMENTATION_PLAN.md)后授权落实。记录组件、语义核对、可选 hooks、恢复与目标局部采用已完成。真实目标 Claude 的启动/输入/结果已捕获并核对；桌面 Codex 能发现配置，但原生信任尚未完成，仍不可宣称自动捕获。独立 Agent 从实际恢复输出识别故意错误的 no_change；原生自动压缩、Codex实际事件和长期收益待验证。实际操作与停用见[指南](../02_TECH/CONTEXT_CAPTURE.md)，本轮证据见上方 v1.5 记录。
+本轮实现与局部采用已收尾，后续按真实使用暴露的缺口验证。换会话时采用现有主动交接入口；大型单流捕获超时仍需后续专项设计，不以删除历史或虚填覆盖解决。运行中的 AI 是否已读到规则逐会话核对，不自动重启执行器、清理文档或开展新一轮付费试验。
 
 已完成[升级方案](../03_DELIVERY/GOVERNANCE_UPGRADE_PLAN.md)的本轮基线、隔离适配、独立验证、通用工具与目标采用。使用入口见[升级指南](../03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md)。发布时按实际提交核验 Windows/Linux × Python 3.10/3.14 的四组 CI，并在上方 Release 保留运行链接；原 v1.3 的 CI 不能替代本轮验证。
 
