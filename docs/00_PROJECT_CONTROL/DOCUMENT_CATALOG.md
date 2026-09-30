@@ -24,6 +24,8 @@
 | [GOVERNANCE_UPGRADE_PLAN.md](../03_DELIVERY/GOVERNANCE_UPGRADE_PLAN.md) | 已有项目治理适配与升级的实施方案、保护边界及验收案例 |
 | [GOVERNANCE_UPGRADE_GUIDE.md](../03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md) | 明确候选、实际采用记录、局部应用与回退的操作入口 |
 | [CONTEXT_CAPTURE_IMPLEMENTATION_PLAN.md](../03_DELIVERY/CONTEXT_CAPTURE_IMPLEMENTATION_PLAN.md) | 会话事件、原生摘要留存、覆盖缺口与恢复核对的设计及验收依据 |
+| [CONTINUITY_AND_SCALE_PLAN.md](../03_DELIVERY/CONTINUITY_AND_SCALE_PLAN.md) | 主动交接、操作接续与历史增长开销补强的实施范围及验收依据 |
+| [操作接续示例](../../examples/continuity/README.md) | 稳定操作说明、临时检查点和交接指针的合成例子与本地探针 |
 | [IMPLEMENTATION_PROGRESS.md](../03_DELIVERY/IMPLEMENTATION_PROGRESS.md) | 实现进度入口 |
 | [TEST_CASES_AND_ACCEPTANCE_v1.md](../03_DELIVERY/TEST_CASES_AND_ACCEPTANCE_v1.md) | 母仓库验收标准 |
 | [BLOCKER_LOG.md](../04_ISSUES/BLOCKER_LOG.md) | BLOCKER_LOG.md |

@@ -1,0 +1,22 @@
+{
+  "task_id": "preview-demo",
+  "actor": "synthetic coordinator",
+  "role": "coordinator",
+  "session_id": "synthetic-session-041",
+  "context_revision": "ctx-demo-001",
+  "observed_at": "2026-09-30T10:00:00+08:00",
+  "last_action": "合成历史观察：本地预览操作已受理，控制会话随后失联；尚未核实当前状态。",
+  "next_action": "读取已有 operations.md，使用同一隔离目录查询 preview-041，再依据实际结果决定是否完成剩余步骤。",
+  "unresolved": [
+    "当前操作状态未知；不能将上次受理写成现在已经完成。",
+    "本例未填真实隔离目录；运行者须提供此前 init 使用的目录，不能猜测或重新初始化冒充恢复。"
+  ],
+  "operations": [
+    {
+      "description": "已受理的合成预览操作",
+      "locator": "本次已有隔离目录中的 preview-041；通过 local_service.py inspect --sandbox <actual-existing-sandbox> --environment rehearsal --identity preview-operator --operation preview-041 查询。",
+      "state": "unknown"
+    }
+  ],
+  "evidence": []
+}

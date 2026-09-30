@@ -387,6 +387,150 @@ class ContextCaptureTests(unittest.TestCase):
         self.assertEqual(resume["previous_binding"], old_id)
         self.assertIn(pending, resume["previous_streams"][0]["pending_capture_ids"])
 
+    def test_shared_sources_are_rechecked_on_each_query_across_streams(self):
+        bindings = [self.bind("shared-source-a"), self.bind("shared-source-b")]
+        captured = []
+        for binding in bindings:
+            event_id = self.capture(binding)["capture_id"]
+            captured.append(event_id)
+            self.core.reconcile_context(self.target, binding, self.reconciliation([event_id]))
+        settled = self.core.context_status(self.target)
+        self.assertTrue(all(not item["coverage"]["pending_capture_ids"] for item in settled["bindings"]))
+        (self.target / self.topic).write_text("# Changed authority\nA new correction applies.\n", encoding="utf-8")
+        stale = self.core.context_status(self.target)
+        for item in stale["bindings"]:
+            coverage = item["coverage"]
+            self.assertTrue(coverage["pending_capture_ids"])
+            self.assertTrue(coverage["stale_reconciliation_ids"])
+            self.assertIn(self.topic, coverage["changed_source_refs"])
+            self.assertEqual(coverage["reconciled_capture_ids"], [])
+        # A missing source is unknown/stale too; it must not reuse a prior hash.
+        (self.target / self.topic).unlink()
+        missing = self.core.context_status(self.target)
+        self.assertEqual(stale, missing)
+
+    def test_reconciliation_keeps_final_hash_check_after_history_read(self):
+        binding = self.bind()
+        event_id = self.capture(binding)["capture_id"]
+        data = self.reconciliation([event_id])
+        original_records = self.core.records
+
+        def mutate_after_validation(folder):
+            result = original_records(folder)
+            if folder.name == "reconciliations":
+                (self.target / self.topic).write_text("# Concurrent edit\nDo not settle stale work.\n", encoding="utf-8")
+            return result
+
+        with mock.patch.object(self.core, "records", side_effect=mutate_after_validation):
+            with self.assertRaisesRegex(self.core.ContextError, "changed during reconciliation"):
+                self.core.reconcile_context(self.target, binding, data)
+        self.assertEqual(self.status(binding)["coverage"]["reconciliation_ids"], [])
+
+    def test_invalid_history_is_not_hidden_by_capture_or_reconciliation_fast_paths(self):
+        binding = self.bind()
+        event = self.capture(binding)
+        folder = (self.target / event["event_path"]).parent
+        malformed = folder / ("capture-" + "0" * 32 + ".json")
+        malformed.write_text("{incomplete", encoding="utf-8")
+        with self.assertRaises(self.core.ContextError):
+            self.core.capture_event(self.target, binding, {"kind": "user_input", "native_event_id": "another"})
+        with self.assertRaises(self.core.ContextError):
+            self.core.reconcile_context(self.target, binding, self.reconciliation([event["capture_id"]]))
+        self.assertEqual(len(list(folder.glob("*.json"))), 2)
+
+    def test_collection_scan_rejects_replaced_files_and_directories(self):
+        binding = self.bind()
+        captured = self.capture(binding)
+        path = self.target / captured["event_path"]
+        original_open = Path.open
+        original_content, original_info = path.read_bytes(), path.stat()
+        replaced = False
+
+        def replace_before_open(current, *args, **kwargs):
+            nonlocal replaced
+            if current == path and not replaced:
+                replaced = True
+                current.rename(current.with_suffix(".old"))
+                with original_open(current, "wb") as stream:
+                    stream.write(original_content)
+                os.utime(current, ns=(original_info.st_atime_ns, original_info.st_mtime_ns))
+            return original_open(current, *args, **kwargs)
+
+        with mock.patch.object(Path, "open", replace_before_open):
+            with self.assertRaisesRegex(self.core.ContextError, "changed before"):
+                self.core.records(path.parent)
+        path.unlink()
+        path.with_suffix(".old").rename(path)
+        original_record = self.core.read_record
+
+        def replace_directory(current, **kwargs):
+            result = original_record(current, **kwargs)
+            current.parent.rename(current.parent.with_name("events-old"))
+            current.parent.mkdir()
+            return result
+
+        with mock.patch.object(self.core, "read_record", side_effect=replace_directory):
+            with self.assertRaisesRegex(self.core.ContextError, "collection changed"):
+                self.core.records(path.parent)
+
+    def test_collection_scan_still_rejects_linked_records(self):
+        binding = self.bind()
+        event = self.capture(binding)
+        path = self.target / event["event_path"]
+        outside = self.root / "outside.json"
+        outside.write_text('{"private": "not a context event"}', encoding="utf-8")
+        linked = path.parent / ("capture-" + "0" * 32 + ".json")
+        try:
+            os.link(outside, linked)
+        except OSError:
+            self.skipTest("Host does not support hardlinks")
+        with self.assertRaises(self.core.ContextError):
+            self.core.records(path.parent)
+        linked.unlink()
+        try:
+            linked.symlink_to(outside)
+        except OSError:
+            return
+        with self.assertRaises(self.core.ContextError):
+            self.core.records(path.parent)
+
+    def test_collection_scan_rejects_temporary_ancestor_redirection(self):
+        binding = self.bind()
+        event = self.capture(binding)
+        path = self.target / event["event_path"]
+        probe = self.root / "link-probe"
+        try:
+            probe.symlink_to(path.parent, target_is_directory=True)
+        except OSError:
+            self.skipTest("Host does not support directory symlinks")
+        probe.unlink()
+        original_record = self.core.read_record
+        # Restore the identical original directory before the scan's final
+        # check: checking only at scan boundaries would accept outside JSON.
+        cases = ((path.parent, False), (path.parent.parent, False),
+                 (self.target, False), (path.parent.parent, True))
+        for index, (ancestor, same_tree) in enumerate(cases):
+            with self.subTest(ancestor=ancestor.name, same_tree=same_tree):
+                outside = self.root / f"outside-{index}"
+                replacement = outside / path.relative_to(ancestor)
+                write_json(replacement, {"external": True})
+                backup = ancestor.with_name(ancestor.name + "-backup")
+
+                def redirected_read(current, **kwargs):
+                    ancestor.rename(backup)
+                    ancestor.symlink_to(backup if same_tree else outside, target_is_directory=True)
+                    try:
+                        return original_record(current, **kwargs)
+                    finally:
+                        ancestor.unlink()
+                        backup.rename(ancestor)
+
+                with mock.patch.object(self.core, "read_record", side_effect=redirected_read):
+                    with self.assertRaisesRegex(self.core.ContextError, "symbolic links or reparse"):
+                        self.core.records(path.parent)
+                self.assertFalse(path.parent.is_symlink())
+                self.assertEqual(self.core.read_record(path)["capture_id"], event["capture_id"])
+
 
 if __name__ == "__main__":
     unittest.main()

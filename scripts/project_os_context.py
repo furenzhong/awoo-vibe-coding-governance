@@ -147,10 +147,47 @@ def private_store(root: Path, create: bool = False) -> Path:
     return path
 
 
-def read_record(path: Path) -> dict[str, Any]:
-    inspect_path(path, file=True)
+def _record_stat(path: Path) -> os.stat_result:
+    info = path.lstat()
+    if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+            or getattr(info, "st_file_attributes", 0) & 0x400):
+        raise ContextError("Context inputs must be regular files without links or reparse points.")
+    return info
+
+
+def _file_version(info: os.stat_result) -> tuple[int, int, int, int]:
+    return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns)
+
+
+def read_record(path: Path, *, ancestors: tuple[Path, ...] | None = None) -> dict[str, Any]:
+    if ancestors is None:
+        inspect_path(path, file=True)
+    else:
+        # Reuse path objects, never their filesystem observations. Every file
+        # gets fresh checks of the complete chain, including ancestors above
+        # the project root, so a temporary directory redirection is rejected.
+        for parent in ancestors:
+            info = parent.lstat()
+            if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+                raise ContextError("Context paths cannot traverse symbolic links or reparse points.")
+            if not stat.S_ISDIR(info.st_mode):
+                raise ContextError("A context path parent is not a directory.")
+    before = _record_stat(path)
+    with path.open("rb") as stream:
+        opened = os.fstat(stream.fileno())
+        if _file_version(opened) != _file_version(before) or opened.st_nlink != 1:
+            raise ContextError("Context record changed before it could be read.")
+        raw = stream.read()
+        after = os.fstat(stream.fileno())
+    current = _record_stat(path)
+    # Windows stat/fstat can expose different ctime meanings. Compare ctime
+    # within the same API, while device/inode/size/mtime bind the opened file.
+    if (_file_version(after) != _file_version(before)
+            or _file_version(current) != _file_version(before)
+            or after.st_ctime_ns != opened.st_ctime_ns or current.st_ctime_ns != before.st_ctime_ns):
+        raise ContextError("Context record changed while being read.")
     try:
-        data = json.loads(path.read_text(encoding="utf-8-sig"))
+        data = json.loads(raw.decode("utf-8-sig"))
     except (ValueError, UnicodeError, RecursionError) as exc:
         raise ContextError("A stored context record is invalid JSON.") from exc
     if not isinstance(data, dict):
@@ -228,7 +265,16 @@ def records(folder: Path) -> list[dict[str, Any]]:
         return []
     if not folder.is_dir():
         raise ContextError("Context record collection is not a directory.")
-    return [read_record(path) for path in sorted(folder.glob("*.json"))]
+    before = folder.stat()
+    # Reuse only the path objects. Each read rechecks all ancestors and the open
+    # file; the final directory check also catches collection changes mid-scan.
+    ancestors = (*reversed(folder.parents), folder)
+    result = [read_record(path, ancestors=ancestors) for path in sorted(folder.glob("*.json"))]
+    inspect_path(folder)
+    after = folder.stat()
+    if (before.st_dev, before.st_ino, before.st_mtime_ns) != (after.st_dev, after.st_ino, after.st_mtime_ns):
+        raise ContextError("Context record collection changed while being read; retry against current history.")
+    return result
 
 
 def manifest(root: Path) -> dict[str, Any]:
@@ -528,11 +574,18 @@ def reconcile_context(target: str | Path, binding_id: str, data: dict[str, Any])
     return {"ok": True, "reconciliation_id": receipt["reconciliation_id"], "outcome": outcome, "adopted": False}
 
 
-def coverage_for(store: Path, binding: dict[str, Any]) -> dict[str, Any]:
+def coverage_for(store: Path, binding: dict[str, Any], *,
+                 events: list[dict[str, Any]] | None = None,
+                 source_hashes: dict[str, str | None] | None = None) -> dict[str, Any]:
     root = store.parents[1]
     session = store / "sessions" / binding["stream_id"]
-    events = sorted(records(session / "events"), key=lambda event: event["receive_sequence"])
+    events = sorted(records(session / "events") if events is None else events,
+                    key=lambda event: event["receive_sequence"])
     receipts = sorted(records(session / "reconciliations"), key=lambda receipt: receipt["receive_sequence"])
+    # A query observes each source once, even when many receipts cite it. This is
+    # deliberately not a persistent cache or a claim of an atomic workspace view.
+    if source_hashes is None:
+        source_hashes = {}
     latest = {}
     for receipt in receipts:
         for event_id in receipt.get("event_ids", []):
@@ -545,18 +598,22 @@ def coverage_for(store: Path, binding: dict[str, Any]) -> dict[str, Any]:
             continue
         written = {item["path"]: item["after_sha256"] for item in receipt.get("writes", [])}
         for ref in receipt.get("source_refs", []):
-            try:
-                actual = sha(relative_path(root, ref["path"]).read_bytes())
-            except (ContextError, OSError):
-                actual = None
+            source = ref["path"]
+            if source not in source_hashes:
+                try:
+                    source_hashes[source] = sha(relative_path(root, source).read_bytes())
+                except (ContextError, OSError):
+                    source_hashes[source] = None
+            actual = source_hashes[source]
             if actual != written.get(ref["path"], ref["sha256"]):
                 stale_receipts.add(receipt["reconciliation_id"])
                 changed_sources.add(ref["path"])
     observed = [event["capture_id"] for event in events]
     reconciled = [eid for eid in observed if eid in latest and latest[eid]["outcome"] in {"changed", "no_change"}
                   and latest[eid]["reconciliation_id"] not in stale_receipts]
+    reconciled_set = set(reconciled)
     unresolved = [eid for eid in observed if eid in latest and latest[eid]["outcome"] == "unresolved"]
-    pending = [eid for eid in observed if eid not in reconciled]
+    pending = [eid for eid in observed if eid not in reconciled_set]
     starts = {event["sequence_start"] for event in events if event.get("source_complete") and event.get("sequence_start") is not None}
     complete_positions = [event["source_sequence"] for event in events if event.get("source_complete") and event.get("source_sequence") is not None]
     through, missing, ambiguous, unknown = None, [], [], []
@@ -577,7 +634,7 @@ def coverage_for(store: Path, binding: dict[str, Any]) -> dict[str, Any]:
                     ambiguous.append(sequence)
             for sequence in range(start, end + 1):
                 ids = positions.get(sequence, [])
-                if len(ids) != 1 or ids[0] not in reconciled:
+                if len(ids) != 1 or ids[0] not in reconciled_set:
                     break
                 through = sequence
             unknown.append("Continuity applies only to the explicitly declared source interval; earlier and later history is unknown.")
@@ -628,8 +685,9 @@ def context_status(target: str | Path, binding_id: str | None = None) -> dict[st
     bindings = [load_binding(root, store, binding_id)] if binding_id else [
         load_binding(root, store, record.get("binding_id")) for record in all_bindings]
     result = []
+    source_hashes: dict[str, str | None] = {}
     for binding in bindings:
-        coverage = coverage_for(store, binding)
+        coverage = coverage_for(store, binding, source_hashes=source_hashes)
         result.append({"binding_id": binding["binding_id"], "adapter": binding["adapter"],
                        "session_id": binding["session_id"], "mode": binding["mode"],
                        "topic_refs": binding["topic_refs"], "task_id": binding["task_id"],
@@ -652,14 +710,15 @@ def resume_context(target: str | Path, binding_id: str) -> dict[str, Any]:
     root = project_root(target)
     store = private_store(root)
     binding = load_binding(root, store, binding_id)
-    coverage = coverage_for(store, binding)
+    folder = store / "sessions" / binding["stream_id"] / "events"
+    events = sorted(records(folder), key=lambda event: event["receive_sequence"])
+    source_hashes: dict[str, str | None] = {}
+    coverage = coverage_for(store, binding, events=events, source_hashes=source_hashes)
     for key, value in list(coverage.items()):
         if isinstance(value, list) and len(value) > 20:
             coverage[key + "_count"] = len(value)
             coverage[key] = value[-20:]
             coverage[key + "_truncated"] = True
-    folder = store / "sessions" / binding["stream_id"] / "events"
-    events = sorted(records(folder), key=lambda event: event["receive_sequence"])
     # Keep recent user words even when a model incorrectly marked them no_change.
     recent = [event for event in events if event["kind"] == "user_input"][-3:]
     inputs = []
@@ -678,7 +737,7 @@ def resume_context(target: str | Path, binding_id: str) -> dict[str, Any]:
             raise ContextError("Binding history contains a cycle.")
         seen.add(previous)
         old = load_binding(root, store, previous)
-        old_coverage = coverage_for(store, old)
+        old_coverage = coverage_for(store, old, source_hashes=source_hashes)
         previous_streams.append({"binding_id": previous, "mode": old["mode"],
                                  "pending_capture_count": len(old_coverage["pending_capture_ids"]),
                                  "pending_capture_ids": old_coverage["pending_capture_ids"][-10:],

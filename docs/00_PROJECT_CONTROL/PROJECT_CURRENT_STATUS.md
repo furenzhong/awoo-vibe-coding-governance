@@ -1,6 +1,8 @@
 # 当前状态
 
-更新：2026-09-28 · 工具包版本：1.5.0。发布身份、固定提交、下载包及对应 CI 结果以 [v1.5.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0) 为准；历史正式版本保留在 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)。版本号及发行包均不代表已有项目已经升级或运行中的会话已经启用。
+更新：2026-09-30 · 工作区候选版本：1.6.0，实施及验证进行中，尚未正式发行。当前正式发行仍为 [v1.5.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0)；历史正式版本保留在 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)。版本号及发行包均不代表已有项目已经升级或运行中的会话已经启用。
+
+本轮按[交接与增长补强方案](../03_DELIVERY/CONTINUITY_AND_SCALE_PLAN.md)实施主动交接、操作接续与记录性能优化。源工具包验证后按明确候选局部采用到已有项目。独立接手、分规模基准、回归及实际采用未完成前不登记为通过；原始历史保留，清理主动唤醒规则保持。
 
 ## 当前目标
 

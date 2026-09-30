@@ -4,6 +4,8 @@ English · [简体中文](README.md)
 
 Release: [v1.5.0 notes and download](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0). Existing projects adopt relevant changes through the [upgrade guide](docs/03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md); publishing does not modify projects or enable hooks automatically.
 
+This working tree includes **v1.6.0 candidate** changes for operational handoff and growing record histories; it is not a formal release. See the [implementation plan](docs/03_DELIVERY/CONTINUITY_AND_SCALE_PLAN.md) for scope and [current status](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md) for actual validation evidence.
+
 Keep the same project moving correctly when you switch conversations, models, or execution tools.
 
 Awoo Vibe Coding Governance is a lightweight governance kit that integrates into **existing projects**. It helps an AI find effective requirements, current facts, unfinished work, and acceptance evidence. It includes additive installation and local checking tools. You can give this repository link directly to the AI already working on your project.
@@ -42,6 +44,7 @@ The AI's operational entry is the [integration guide](docs/03_DELIVERY/DELIVERY_
 | An AI says “done” without a clear basis | Bind results to a revision, checks, and evidence; record acceptance separately |
 | An omitted constraint sends Claude Code's implementation off course | Dispatch snapshots preserve constraint sources, rejected options, assumptions, and acceptance criteria |
 | Compaction or a new conversation loses track of other AI workers | Separate checkpoints for each execution identity; distinguish recorded, delivered, and adopted corrections |
+| A successor knows the plan but cannot find the admin console or previously successful procedure | Keep stable operating knowledge in existing runbooks, temporary state in checkpoints, and handoff pointers with explicit gaps |
 | Installing a kit replaces the project's identity | Check source and target identities; preserve the target's Git and business content |
 | Documentation grows without visible benefit | Run AI handoff and failure exercises; report outcomes and maintenance effort |
 | Old proposals become current requirements, or cleanup loses open questions | Consolidate conclusions, constraints, rationale, and unresolved work; retrieve history on demand |
@@ -128,6 +131,37 @@ Default installation provides the tools; **it does not enable session capture**.
 
 Events stay in Git-ignored `.project-os-local/`, with common credentials filtered and truncation declared by default. They are not uploaded to this repository. Native summaries remain historical evidence and cannot override later decisions. `status/resume` report captured, pending, and unknown coverage; these records do not prove semantic accuracy or real-time synchronization. Each adapter can be disabled while retaining evidence. No event starts or prompts document cleanup.
 
+Events and reconciliation receipts keep accumulating. There is currently no automatic rotation, retention period, or capacity limit. Reducing repeated reads and computation does not bound storage growth; measured evidence defines performance coverage. Native adapters do not capture every tool call either: a successful command visible only in terminal output may still need the AI to preserve it in a runbook.
+
+## Before starting a new conversation
+
+Send this request in the old conversation:
+
+```text
+I am about to start a new conversation. Follow project governance to save
+information from this session that is still missing from the relevant
+project documents and would affect continuation. Preserve my decisions,
+corrections, rejected options and reasons, actual checks, and unfinished work.
+
+If continuation depends on a server, admin console, or tool, update the
+existing runbook with the environment, entry point, identity, credential
+location (no secret values), successful steps, and verification time.
+Update existing checkpoints with operation IDs, query methods, the current
+stopping point, and unknowns. Link these sources from the handoff.
+Do not fill irrelevant tables, force a new task for each conversation,
+clean up history, or change application code.
+
+Give the new conversation its entry point. Report separately what was saved,
+what was checked, whether continuation was actually tested, and specific
+remaining gaps. Keep unverifiable information marked unknown.
+```
+
+In the new conversation, say: "Recover context from the project's governance entry. Check the current goal, constraints, actual environment, and existing operation before continuing the authorized next step. Identify any gaps." The [starter template](docs/05_HANDOFF/templates/NEXT_SESSION_STARTER_TEMPLATE_v1.md) provides more detail. Query an existing operation before acting; an old conversation ending without a final response is not a reason to resubmit it.
+
+Preserve information whose absence would make a successor ask you again, repeat failed attempts, use the wrong environment, or repeat an accepted operation. Update existing documents in place, with pointers in HANDOFF. Projects without servers need no access table. A handoff saves verifiable information; it cannot recover unavailable history or guarantee inherited login state. **Saved records, checked handoff information, and tested continuation are separate outcomes.** Preparing a handoff does not automatically establish all three.
+
+This is a user-invoked handoff entry. It adds no scheduled prompts, automatic exit interception, or cleanup triggers. The [offline continuation example](examples/continuity/README.md) demonstrates the structure; repeating a public example does not count as a blind handoff test.
+
 ## How to tell whether it helps when the AI uses it
 
 Ask the AI for a short result receipt instead of reviewing every template yourself:
@@ -135,12 +169,14 @@ Ask the AI for a short result receipt instead of reviewing every template yourse
 ```text
 Machine checks: pass / issues found; actual report attached
 Independent handoff: pass / fail / untested; correct goal, work state, next step?
+Operational continuation: environment, original operation, and action evidence;
+explicitly mark it inapplicable or untested when appropriate
 Failure exercises: what was detected, and what was missed?
 Observed use: recorded repeated work, user corrections, and maintenance effort
 Your decision: none, or one specific question
 ```
 
-At first adoption and after substantial changes to reading or collaboration behavior, follow the [governance trial](docs/03_DELIVERY/GOVERNANCE_TRIAL.md) in an isolated copy: fresh-session recovery, stale statements, missing acceptance evidence, and interrupted work. Day-to-day work checks only relevant changes. It does not rerun the entire trial on every edit or automatically create monitoring or paid calls.
+At first adoption and after substantial changes to reading or collaboration behavior, follow the [governance trial](docs/03_DELIVERY/GOVERNANCE_TRIAL.md) in an isolated copy: fresh-session recovery, stale statements, missing acceptance evidence, and interrupted work. When operations are involved, also test whether a fresh AI finds the correct environment, queries the original operation, performs a real next step, and identifies a deliberately missing dependency. Seal expected answers before the trial and withhold them from the successor. Day-to-day work checks only relevant changes. It does not rerun the entire trial on every edit or automatically create monitoring or paid calls.
 
 **A machine pass establishes only the checked structural and declaration rules.** It does not establish product quality, the truth of every document, or actual agent adherence. Mark exercises that were not run as untested. Report evidence and a minimal correction when something fails. See the [current status](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md) for measured coverage and the corresponding versioned evidence.
 

@@ -49,7 +49,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 SCHEMA_VERSION = 1
 MANIFEST = "project-os.json"
 ADOPTION = ".project-os-adoption.json"
@@ -287,6 +287,21 @@ content, references, active tasks, and retention needs; age alone is insufficien
 
 ## 跨会话任务 / Cross-session tasks
 
+When the user asks to prepare a new conversation or update the handoff, save
+unsaved decisions, corrections, verification results and necessary operation
+details to their existing sources. Preserve information whose absence would
+cause repeated questions, repeated trial and error, use of the wrong environment,
+or duplicate external actions. Keep durable access and operating knowledge in an
+existing runbook: environment and entrypoint, account role, credential location
+(never values), known working steps, verification evidence/time and limitations.
+Keep the current stop point, operation/session IDs, observed state and next step
+in the existing task/checkpoint; HANDOFF links to it. Use only applicable details,
+not a mandatory server form. Do not invent tasks for discussion or create a new
+document for every conversation. Saved, checked for handoff, and actually resumed
+are separate claims. Report the resume entry, missing information and checks
+actually performed. A past successful login is not current access evidence.
+This is ordinary handoff maintenance, not document cleanup or a new auto-trigger.
+
 If this project explicitly enables project-os-context.json, follow
 project-os/CONTEXT_CAPTURE.md for event reconciliation and recovery. Native
 summaries are historical evidence. Check relevant pending inputs and current
@@ -353,6 +368,14 @@ behavior have not been inspected or validated by this installer.
 - Link to task records instead of maintaining a second task lifecycle here.
 """,
         "handoff": """# 当前交接 / Current handoff
+
+Link to the existing current task/checkpoint and any runbook needed to continue.
+For an explicit conversation handoff, preserve unsaved decisions and corrections,
+actual results, required access/operating knowledge, and unfinished operations.
+Keep stable operating steps in their existing source; keep temporary state in
+the task/checkpoint. Record credential locations only, never secrets. Distinguish
+saved information, reviewed sufficiency, and actual resumption tests; list gaps.
+No extra task or document is required for discussion, and handoff is not cleanup.
 
 ## 接续位置 / Resume point
 
