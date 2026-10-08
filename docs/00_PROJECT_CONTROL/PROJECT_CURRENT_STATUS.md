@@ -1,8 +1,10 @@
 # 当前状态
 
-更新：2026-09-30 · 候选版本：1.6.0，实施、验证与目标局部采用已完成，尚未正式发行。当前正式发行仍为 [v1.5.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0)；历史正式版本保留在 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)。版本号及发行包均不代表已有项目已经升级或运行中的会话已经启用。
+更新：2026-10-09 · 候选版本：1.6.0，交接与查询补强、共享指令主动维护及全局参考稿已完成相应验证，尚未正式发行。当前正式发行仍为 [v1.5.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0)；历史正式版本保留在 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)。版本号及发行包均不代表已有项目已经升级或运行中的会话已经启用。
 
-本轮按[交接与增长补强方案](../03_DELIVERY/CONTINUITY_AND_SCALE_PLAN.md)完成主动交接、操作接续与查询优化。110 项本地回归、三个真实独立 Claude 会话案例、24 项规模对照及目标局部采用已完成；范围与限制见 [v1.6 候选验证](../05_HANDOFF/evidence/2026-09-30-v1.6-validation.md)。原始历史保留，清理主动唤醒规则保持。5,000 条单流捕获仍可能超过 hook 的 10 秒限时，不能把查询提速当作长期捕获容量保证。
+2026-09-30 按[交接与增长补强方案](../03_DELIVERY/CONTINUITY_AND_SCALE_PLAN.md)完成主动交接、操作接续与查询优化。110 项本地回归、三个真实独立 Claude 会话案例、24 项规模对照及目标局部采用已完成；范围与限制见 [v1.6 候选验证](../05_HANDOFF/evidence/2026-09-30-v1.6-validation.md)。原始历史保留，清理主动唤醒规则保持。5,000 条单流捕获仍可能超过 hook 的 10 秒限时，不能把查询提速当作长期捕获容量保证。
+
+2026-10-09 将共享指令推动主动落盘、摘要核对遗漏的约定补进项目与安装默认规则，并附完整 Codex 全局参考稿；既有项目仍需局部采用。110 项本地回归、两个无父聊天历史的独立 Agent 合成演练及规则一致性审阅通过，具体范围见[本轮验证](../05_HANDOFF/evidence/2026-10-09-shared-instructions-validation.md)。原生自动压缩、完整摘要和真实跨工具切换没有新增实测，长期减少误差与维护成本仍待观察。
 
 ## 当前目标
 

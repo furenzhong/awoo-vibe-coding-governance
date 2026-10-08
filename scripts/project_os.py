@@ -287,6 +287,22 @@ content, references, active tasks, and retention needs; age alone is insufficien
 
 ## 跨会话任务 / Cross-session tasks
 
+Save consequential user confirmations, corrections, rejected choices and reasons,
+evidence, and unfinished state while they are still verifiable. Update the existing
+responsible source before dependent action, or before ending the turn otherwise.
+Do not wait for a reminder, compaction, or an explicit handoff request. No meaningful
+change means no new summary or repeated rewrite of every entrypoint.
+
+After compaction or recovery, compare available summaries and relevant user input
+with current authority and unfinished operations. Save missing consequential
+information to its existing source. Native summaries remain source-labelled
+historical evidence, retained only through an adopted recording mechanism. When
+native text or coverage is unavailable, save verifiable continuation information
+and state the gap; model-written notes are not native summaries or proof of full
+recovery. Verify that each executor loads the shared rules; writing them does not
+establish adoption. Shared rule maintenance, native capture, and verified
+continuation are separate outcomes, and none initiates document cleanup.
+
 When the user asks to prepare a new conversation or update the handoff, save
 unsaved decisions, corrections, verification results and necessary operation
 details to their existing sources. Preserve information whose absence would

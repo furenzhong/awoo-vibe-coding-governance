@@ -6,6 +6,7 @@
 |---|---|
 | [DOCUMENT_CATALOG.md](DOCUMENT_CATALOG.md) | DOCUMENT_CATALOG.md |
 | [DOCUMENT_GOVERNANCE_SYSTEM.md](DOCUMENT_GOVERNANCE_SYSTEM.md) | 文档治理规则 |
+| [GLOBAL_AGENTS_TEMPLATE.md](templates/GLOBAL_AGENTS_TEMPLATE.md) | 完整可复制的 Codex 全局规则参考，含共享文档治理及自动摘要核对纪律；按偏好采用，不自动覆盖全局配置 |
 | [DOCUMENT_LIFECYCLE.md](DOCUMENT_LIFECYCLE.md) | 文档归类、压缩、归档与清理边界 |
 | [PROJECT_CURRENT_STATUS.md](PROJECT_CURRENT_STATUS.md) | 当前状态 |
 | [PROJECT_MASTER_INDEX.md](PROJECT_MASTER_INDEX.md) | 项目入口 / Project index |
