@@ -8,5 +8,6 @@ These files are fictional shapes, not runnable tasks or evidence of success. Do 
 - [task.example.json](task.example.json): a task starts as planned; add its receipt path when delivery exists.
 - [context/](context/README.md): an old delivery arrives while a correction is still pending; separate coordinator/executor checkpoints and honest evidence gaps.
 - [receipt.example.json](receipt.example.json): shows delivery and acceptance fields together for reference. The executor supplies checks and result_revision; only a real review supplies verified_by and verification_evidence. Leave these absent until review actually occurs.
+- [composition-challenge/](composition-challenge/README.md): three isolated examples where local checks pass but a user-facing composition contract fails; includes a corrected implementation for false-positive control.
 
 See [the harness contract](../docs/02_TECH/HARNESS_CONTRACT.md) for state changes and [the integration guide](../docs/03_DELIVERY/DELIVERY_PROJECT_INSTANTIATION_GUIDE_v1.md) for adoption.

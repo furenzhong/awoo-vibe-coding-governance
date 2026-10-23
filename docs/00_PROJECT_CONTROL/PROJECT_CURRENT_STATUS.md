@@ -1,6 +1,6 @@
 # 当前状态
 
-更新：2026-10-09 · 候选版本：1.6.0，交接与查询补强、共享指令主动维护及全局参考稿已完成相应验证，尚未正式发行。当前正式发行仍为 [v1.5.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0)；历史正式版本保留在 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)。版本号及发行包均不代表已有项目已经升级或运行中的会话已经启用。
+更新：2026-10-23 · 候选版本：1.6.0，交接与查询补强、共享指令主动维护及全局参考稿已完成相应验证，尚未正式发行。当前正式发行仍为 [v1.5.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0)；历史正式版本保留在 [v1.4.0 Release](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.4.0)。版本号及发行包均不代表已有项目已经升级或运行中的会话已经启用。
 
 2026-09-30 按[交接与增长补强方案](../03_DELIVERY/CONTINUITY_AND_SCALE_PLAN.md)完成主动交接、操作接续与查询优化。110 项本地回归、三个真实独立 Claude 会话案例、24 项规模对照及目标局部采用已完成；范围与限制见 [v1.6 候选验证](../05_HANDOFF/evidence/2026-09-30-v1.6-validation.md)。原始历史保留，清理主动唤醒规则保持。5,000 条单流捕获仍可能超过 hook 的 10 秒限时，不能把查询提速当作长期捕获容量保证。
 
@@ -48,6 +48,8 @@ v1.1.0 已实现增量接入工具、单一事实来源映射和执行合同，�
 增量接入和精简入口能减少真实项目里的用户纠偏与重复工作。当前尚无一段时间的使用数据，不能宣称已经提升开发效率。
 
 ## 下一步
+
+2026-10-23 已用三个隔离组合缺陷夹具验证候选方法：局部检查 `3/3` 通过，预设组合缺陷发现 `3/3`，正确实现误报 `0`。方法和边界见 [组合行为验证](../05_HANDOFF/evidence/2026-10-23-composition-behavior-validation.md)；规则已写入执行合同、治理试验和入口参考，仍未验证未知缺陷发现率、真实外部依赖或执行者实际采用。详见 [DEC-022](../04_ISSUES/DECISION_LOG.md#dec-022--组合行为验证与证据复核候选规则已通过隔离试验持续验证)。
 
 本轮实现与局部采用已收尾，后续按真实使用暴露的缺口验证。换会话时采用现有主动交接入口；大型单流捕获超时仍需后续专项设计，不以删除历史或虚填覆盖解决。运行中的 AI 是否已读到规则逐会话核对，不自动重启执行器、清理文档或开展新一轮付费试验。
 

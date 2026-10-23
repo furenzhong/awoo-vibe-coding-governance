@@ -190,6 +190,8 @@ Your decision: none, or one specific question
 
 At first adoption and after substantial changes to reading or collaboration behavior, follow the [governance trial](docs/03_DELIVERY/GOVERNANCE_TRIAL.md) in an isolated copy: fresh-session recovery, stale statements, missing acceptance evidence, and interrupted work. When operations are involved, also test whether a fresh AI finds the correct environment, queries the original operation, performs a real next step, and identifies a deliberately missing dependency. Seal expected answers before the trial and withhold them from the successor. Day-to-day work checks only relevant changes. It does not rerun the entire trial on every edit or automatically create monitoring or paid calls.
 
+For consequential code composition, write observable success and forbidden outcomes from the user contract before reviewing implementation. Walk the complete affected path through interfaces, persistence, failure, retry, duplicate, and recovery behavior. Challenge the review method with an isolated implementation that passes local checks but violates the composition contract and with a correct implementation; record detection, false positives, misses, and untested scope. Passing selected examples does not prove that unknown bugs will be found.
+
 **A machine pass establishes only the checked structural and declaration rules.** It does not establish product quality, the truth of every document, or actual agent adherence. Mark exercises that were not run as untested. Report evidence and a minimal correction when something fails. See the [current status](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md) for measured coverage and the corresponding versioned evidence.
 
 ## Collaboration such as Codex → Claude Code
