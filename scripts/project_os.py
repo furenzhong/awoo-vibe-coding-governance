@@ -49,7 +49,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 
-VERSION = "1.7.0"
+VERSION = "1.8.0"
 SCHEMA_VERSION = 1
 MANIFEST = "project-os.json"
 ADOPTION = ".project-os-adoption.json"
@@ -63,6 +63,7 @@ END = b"<!-- project-os:end -->"
 TASK_STATUSES = {"planned", "running", "submitted", "accepted", "returned", "blocked"}
 LIMITS = (
     "Checks validate local structure, Git object references, declared results, and evidence paths. "
+    "Declared v1.8+ AI code-review records are checked for required section presence only; older records are retained without migration. "
     "Opted-in task context checks compare snapshot hashes, declared revisions, checkpoints, and correction evidence. "
     "Legacy tasks have no context coverage. Hashes are editable consistency records, not tamper-proof attestations. "
     "Checks do not execute commands, contact or stop agents, establish identity or understanding, "
@@ -75,7 +76,7 @@ INVENTORY_SKIP_DIRS = {
     ".tox", ".venv", "venv", "coverage", ".next", ".nuxt",
 }
 INVENTORY_ARCHIVE_PREFIXES = {"docs/06_archive", "archive", "archives"}
-INVENTORY_METADATA_KEYS = {"lifecycle", "topic", "created", "superseded_by", "archived_reason"}
+INVENTORY_METADATA_KEYS = {"lifecycle", "topic", "created", "superseded_by", "archived_reason", "record_type", "template_version"}
 INVENTORY_RETIRED = {"archived", "superseded", "obsolete"}
 INVENTORY_LIMITS = (
     "Categories use declared mappings, document front matter, and paths; they do not measure actual agent context. "
@@ -1210,7 +1211,7 @@ def check_project(root: Path) -> dict[str, Any]:
     def issue(code: str, message: str, path: str = "", warning: bool = False) -> None:
         (warnings if warning else errors).append({"code": code, "path": path, "message": message})
 
-    report: dict[str, Any] = {"command": "check", "ok": False, "target": str(root), "errors": errors, "warnings": warnings, "harness": {"tasks": 0, "accepted": 0, "state": "not_exercised"}, "context": {"tracked": 0, "legacy": 0, "state": "not_exercised"}, "limits": LIMITS}
+    report: dict[str, Any] = {"command": "check", "ok": False, "target": str(root), "errors": errors, "warnings": warnings, "harness": {"tasks": 0, "accepted": 0, "state": "not_exercised"}, "context": {"tracked": 0, "legacy": 0, "state": "not_exercised"}, "ai_code_reviews": {"checked": 0, "legacy": 0}, "limits": LIMITS}
     try:
         data = read_json(safe_path(root, MANIFEST))
         manifest_shape(root, data)
@@ -1264,6 +1265,10 @@ def check_project(root: Path) -> dict[str, Any]:
     for path in (task_dir, evidence_dir):
         if not path.is_dir():
             issue("missing_directory", "Governance directory is missing.", path.relative_to(root).as_posix())
+    review_report = check_ai_review_records(root, evidence_dir)
+    report["ai_code_reviews"] = {"checked": review_report["checked"], "legacy": review_report["legacy"]}
+    errors.extend(review_report["errors"])
+    warnings.extend(review_report["warnings"])
     task_files = sorted(task_dir.glob("*.json")) if task_dir.is_dir() else []
     report["harness"]["tasks"] = len(task_files)
 
@@ -1441,6 +1446,76 @@ def inventory_metadata(text: str) -> tuple[dict[str, str], list[str]]:
         elif value:
             metadata[key] = value
     return metadata, messages
+
+
+def check_ai_review_records(root: Path, evidence_dir: Path) -> dict[str, Any]:
+    """Check declared AI code-review records for required structural sections."""
+    result: dict[str, Any] = {"checked": 0, "legacy": 0, "errors": [], "warnings": []}
+    required_sections = (
+        (2, "覆盖范围与覆盖率"),
+        (2, "已验证安全（负结果）"),
+        (4, "P0/P1 执行与降级声明"),
+        (2, "权威来源裁定"),
+        (2, "独立复核"),
+    )
+    if not evidence_dir.is_dir():
+        return result
+
+    for directory, names, filenames in os.walk(evidence_dir, followlinks=False):
+        directory_path = Path(directory)
+        names[:] = [
+            name for name in names
+            if name.casefold() not in INVENTORY_SKIP_DIRS
+            and not inventory_link(directory_path / name)
+        ]
+        for filename in filenames:
+            path = directory_path / filename
+            if path.suffix.casefold() not in {".md", ".markdown"} or inventory_link(path):
+                continue
+            relative = path.relative_to(root).as_posix()
+            try:
+                content = path.read_text(encoding="utf-8-sig")
+            except (OSError, UnicodeError) as exc:
+                result["errors"].append({"code": "ai_review_record", "path": relative, "message": f"Cannot read declared review record: {exc}"})
+                continue
+            metadata, _ = inventory_metadata(content)
+            if metadata.get("record_type") != "ai_code_review":
+                continue
+            version = metadata.get("template_version", "")
+            if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+                result["errors"].append({"code": "ai_review_version", "path": relative, "message": "Declared AI code-review record requires a semantic template_version."})
+                continue
+            version_tuple = tuple(int(part) for part in version.split("."))
+            if version_tuple < (1, 8, 0):
+                result["legacy"] += 1
+                result["warnings"].append({"code": "ai_review_legacy", "path": relative, "message": f"AI code-review record uses template v{version}; retained without v1.8 structural requirements."})
+                continue
+            result["checked"] += 1
+            headings: set[tuple[int, str]] = set()
+            fence: tuple[str, int] | None = None
+            for line in content.splitlines():
+                stripped = line.lstrip(" ")
+                fence_match = re.match(r"^(`{3,}|~{3,})", stripped)
+                if fence_match:
+                    marker = fence_match[1]
+                    if fence is None:
+                        fence = (marker[0], len(marker))
+                    elif marker[0] == fence[0] and len(marker) >= fence[1]:
+                        fence = None
+                    continue
+                if fence is not None:
+                    continue
+                heading = re.match(r"^ {0,3}(#{1,6})[ \t]+(.+?)\s*#*\s*$", line)
+                if heading:
+                    headings.add((len(heading[1]), heading[2].strip()))
+            missing = [f"{'#' * level} {title}" for level, title in required_sections if (level, title) not in headings]
+            if missing:
+                result["errors"].append({
+                    "code": "ai_review_structure",
+                    "path": relative,
+                    "message": "AI code-review record is missing required sections: " + ", ".join(missing),
+                })
+    return result
 
 
 def inventory_link(path: Path) -> bool:

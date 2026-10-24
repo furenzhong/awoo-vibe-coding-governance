@@ -15,9 +15,13 @@
 | [PRODUCT_PRD_v1.md](../01_PRODUCT/PRODUCT_PRD_v1.md) | Awoo Vibe Coding Governance 产品约定 |
 | [PRODUCT_STARTER_KIT_DESIGN_v1.md](../01_PRODUCT/PRODUCT_STARTER_KIT_DESIGN_v1.md) | 设计意图 |
 | [HARNESS_CONTRACT.md](../02_TECH/HARNESS_CONTRACT.md) | 最小执行与交接合同 |
-| [AI_CODE_REVIEW_PROTOCOL.md](../02_TECH/AI_CODE_REVIEW_PROTOCOL.md) | v1.7.0 候选：内置风险分类、适用性判断、不变量、反例验证、覆盖空白、独立复核和只读证据回退的代码审查流程 |
-| [AI_CODE_REVIEW_RECORD_TEMPLATE.md](../02_TECH/templates/AI_CODE_REVIEW_RECORD_TEMPLATE.md) | v1.7.0 候选：单次代码审查的权威来源、覆盖率、负结果、依赖可达性、秘密、降级、跨项目模式和复核记录模板 |
+| [AI_CODE_REVIEW_PROTOCOL.md](../02_TECH/AI_CODE_REVIEW_PROTOCOL.md) | v1.8.0 候选：以非穷尽风险提示和声明分类法组织适用性、不变量、反例、覆盖、独立复核和只读证据回退 |
+| [AI_CODE_REVIEW_RECORD_TEMPLATE.md](../02_TECH/templates/AI_CODE_REVIEW_RECORD_TEMPLATE.md) | v1.8.0 候选：含模板版本、审查覆盖、负结果、严重度理由、P1 执行声明和权威来源裁定的审查记录 |
+| [SECURITY_REVIEW_ADDENDUM.md](../02_TECH/SECURITY_REVIEW_ADDENDUM.md) | 按需使用的依赖可达性、凭据/秘密和跨项目重复模式审查附页 |
+| [GOVERNANCE_ASSURANCE_ARCHITECTURE.md](../02_TECH/GOVERNANCE_ASSURANCE_ARCHITECTURE.md) | 治理规则、结构检查、行为挑战、独立复核与后续服务化的演进边界 |
+| [ai-code-review-trial 样本](../../examples/ai-code-review-trial/README.md) | trial v2 的合成缺陷、正确实现和无 AGENTS 来源裁定样本；期望答案仅供评测者 |
 | [2026-10-24-ai-code-review-blind-trial.md](../05_HANDOFF/evidence/2026-10-24-ai-code-review-blind-trial.md) | AI 代码审查协议的独立盲测和修正证据 |
+| [2026-10-24-ai-code-review-trial-v2.md](../05_HANDOFF/evidence/2026-10-24-ai-code-review-trial-v2.md) | 治理自检 v2 的合成样本、结构检查结果和独立 AI 盲测未执行范围 |
 | [TASK_CONTEXT.md](../02_TECH/TASK_CONTEXT.md) | 版本化派工、分身份检查点、纠偏送达与过期交付核对 |
 | [CONTEXT_CAPTURE.md](../02_TECH/CONTEXT_CAPTURE.md) | 可选事件接入、私有捕获、语义核对、恢复与停用的实际操作入口 |
 | [TECH_ARCHITECTURE_v1.md](../02_TECH/TECH_ARCHITECTURE_v1.md) | 实现结构 |

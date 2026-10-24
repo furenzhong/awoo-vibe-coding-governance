@@ -1,6 +1,9 @@
-# AI 代码审查记录
+---
+record_type: ai_code_review
+template_version: 1.8.0
+---
 
-模板版本：v1.7.0 候选，对应 `AI_CODE_REVIEW_PROTOCOL.md` v1.7.0 候选。
+# AI 代码审查记录
 
 ## 审查元数据
 
@@ -16,6 +19,8 @@
 - 初审结论是否向复核者隐藏：
 - 初审者与复核者是否同一模型/同一委托链：
 - 证据目录：目标项目 evidence / `<audit>/work/<project>/evidence` 回退（说明理由）
+- 本记录采用的模板版本：v1.8.0
+- 是否涉及依赖或凭据/秘密审查，是否使用[安全审查附页](../SECURITY_REVIEW_ADDENDUM.md)：
 
 ## 权威来源裁定
 
@@ -31,21 +36,14 @@
 
 ## 适用性矩阵
 
-默认分类法：权限与身份、状态与一致性、幂等与重复、失败与恢复、文件与路径、凭据与秘密、依赖可达性、供应链与构建、网络与外部副作用、输入与边界、覆盖与可观测性。若采用其他分类法，在此声明来源和覆盖差异。
+- 调查提示（非穷尽，不是逐项打勾表）：权限与身份、状态与一致性、幂等与重复、失败与恢复、文件与路径、凭据与秘密、依赖可达性、供应链与构建、网络与外部副作用、输入与边界、覆盖与可观测性。按实际架构取舍，并声明本次采用的分类法、来源及调整理由。
 
-| 风险项 | 适用性 | 依据 | 检查编号 |
+- 本次采用的分类法及来源：
+- 相对上述提示的增补、裁剪或替代及理由：
+
+| 审查者定义的分类项 | 适用性 | 依据 | 检查编号 |
 |---|---|---|---|
-| 权限与身份 | applicable / not_applicable / unknown |  |  |
-| 状态与一致性 | applicable / not_applicable / unknown |  |  |
-| 幂等与重复 | applicable / not_applicable / unknown |  |  |
-| 失败与恢复 | applicable / not_applicable / unknown |  |  |
-| 文件与路径 | applicable / not_applicable / unknown |  |  |
-| 凭据与秘密 | applicable / not_applicable / unknown |  |  |
-| 依赖可达性 | applicable / not_applicable / unknown |  |  |
-| 供应链与构建 | applicable / not_applicable / unknown |  |  |
-| 网络与外部副作用 | applicable / not_applicable / unknown |  |  |
-| 输入与边界 | applicable / not_applicable / unknown |  |  |
-| 覆盖与可观测性 | applicable / not_applicable / unknown |  |  |
+|  | applicable / not_applicable / unknown |  |  |
 
 ## 覆盖范围与覆盖率
 
@@ -100,17 +98,7 @@
 - 未执行或降级理由、替代证据：
 - 残余风险接受人及引用：
 
-## 依赖可达性
-
-| 包 / 版本 / 公告 | 静态存在位置 | 运行时是否可达及依据 | 是否复现 | 结论 / 证据 ID |
-|---|---|---|---|---|
-|  |  |  |  |  |
-
-## 凭据与秘密
-
-| 位置 | 秘密类型 | 是否明文 | 是否进入构建产物 / 日志 / 网络 | 处置与复验 | 证据 ID |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
+详细依赖可达性及凭据/秘密核查，仅在适用时使用[安全审查附页](../SECURITY_REVIEW_ADDENDUM.md)。
 
 ## 已验证安全（负结果）
 
@@ -118,12 +106,7 @@
 |---|---|---|---|---|
 |  |  |  | pass / partial / unknown |  |
 
-## 跨项目重复模式
-
-- 模式 / 共同触发条件：
-- 受影响项目及检查编号：
-- 是否需要修订协议、模板或共享规则：
-- 证据 ID：
+跨项目模式只有在多个项目具有可比实现和证据时才归纳；需要复用时填入[安全审查附页](../SECURITY_REVIEW_ADDENDUM.md)或专题 evidence，不从相似命名推定同一缺陷。
 
 ## 独立复核
 

@@ -514,6 +514,59 @@ class ProjectOSRegressionTests(unittest.TestCase):
         report = project_os.inventory(self.target)
         self.assertIn(sorted(["a.md", "b.md"]), report["duplicate_candidates"])
 
+    def test_check_requires_structure_for_current_ai_code_review_records(self):
+        self.install()
+        evidence = self.target / "project-os/evidence"
+        review = evidence / "review.md"
+        review.write_text(
+            "---\nrecord_type: ai_code_review\ntemplate_version: 1.8.0\n---\n# Review\n## 覆盖范围与覆盖率\n",
+            encoding="utf-8",
+        )
+        report = self.check()
+        self.assertFalse(report["ok"])
+        finding = next(item for item in report["errors"] if item["code"] == "ai_review_structure")
+        self.assertIn("已验证安全（负结果）", finding["message"])
+        self.assertEqual(report["ai_code_reviews"]["checked"], 1)
+
+    def test_check_does_not_count_headings_inside_fenced_examples(self):
+        self.install()
+        evidence = self.target / "project-os/evidence"
+        review = evidence / "review.md"
+        review.write_text(
+            "---\nrecord_type: ai_code_review\ntemplate_version: 1.8.0\n---\n"
+            "```markdown\n## 覆盖范围与覆盖率\n## 已验证安全（负结果）\n"
+            "#### P0/P1 执行与降级声明\n## 权威来源裁定\n## 独立复核\n```\n",
+            encoding="utf-8",
+        )
+        report = self.check()
+        self.assertFalse(report["ok"])
+        self.assertTrue(any(item["code"] == "ai_review_structure" for item in report["errors"]))
+
+    def test_check_accepts_complete_ai_code_review_structure(self):
+        self.install()
+        evidence = self.target / "project-os/evidence"
+        template = TOOL.parents[1] / "docs/02_TECH/templates/AI_CODE_REVIEW_RECORD_TEMPLATE.md"
+        (evidence / "review.md").write_text(template.read_text(encoding="utf-8"), encoding="utf-8")
+        report = self.check()
+        self.assertTrue(report["ok"], report["errors"])
+        self.assertEqual(report["ai_code_reviews"], {"checked": 1, "legacy": 0})
+
+    def test_check_preserves_legacy_review_and_ignores_unmarked_documents(self):
+        self.install()
+        evidence = self.target / "project-os/evidence"
+        (evidence / "legacy.md").write_text(
+            "---\nrecord_type: ai_code_review\ntemplate_version: 1.7.0\n---\n# Historical report\n",
+            encoding="utf-8",
+        )
+        (evidence / "ordinary.md").write_text(
+            "# Notes\n\n## 覆盖范围与覆盖率\n\n## 已验证安全（负结果）\n",
+            encoding="utf-8",
+        )
+        report = self.check()
+        self.assertTrue(report["ok"], report["errors"])
+        self.assertEqual(report["ai_code_reviews"], {"checked": 0, "legacy": 1})
+        self.assertTrue(any(item["code"] == "ai_review_legacy" for item in report["warnings"]))
+
     def test_inventory_installed_cli_is_read_only_and_explains_its_limits(self):
         self.install()
         (self.target / "notes").mkdir()

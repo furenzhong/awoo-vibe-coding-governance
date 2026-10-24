@@ -4,7 +4,7 @@ English · [简体中文](README.md)
 
 Release: [v1.5.0 notes and download](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0). Existing projects adopt relevant changes through the [upgrade guide](docs/03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md); publishing does not modify projects or enable hooks automatically.
 
-This working tree includes **v1.7.0 candidate** changes to the AI code review protocol and record template; it is not a formal release. See the [current status](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md) for scope and actual validation evidence.
+This working tree includes **v1.8.0 candidate** changes to AI code review assurance and structural checks; it is not a formal release. See the [current status](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md) for scope and actual validation evidence.
 
 Keep the same project moving correctly when you switch conversations, models, or execution tools.
 
