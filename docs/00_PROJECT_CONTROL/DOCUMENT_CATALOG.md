@@ -15,6 +15,9 @@
 | [PRODUCT_PRD_v1.md](../01_PRODUCT/PRODUCT_PRD_v1.md) | Awoo Vibe Coding Governance 产品约定 |
 | [PRODUCT_STARTER_KIT_DESIGN_v1.md](../01_PRODUCT/PRODUCT_STARTER_KIT_DESIGN_v1.md) | 设计意图 |
 | [HARNESS_CONTRACT.md](../02_TECH/HARNESS_CONTRACT.md) | 最小执行与交接合同 |
+| [AI_CODE_REVIEW_PROTOCOL.md](../02_TECH/AI_CODE_REVIEW_PROTOCOL.md) | 将风险清单转成适用性判断、不变量、反例验证和独立复核的代码审查流程 |
+| [AI_CODE_REVIEW_RECORD_TEMPLATE.md](../02_TECH/templates/AI_CODE_REVIEW_RECORD_TEMPLATE.md) | 单次代码审查的适用性、场景、证据和复核记录模板 |
+| [2026-10-24-ai-code-review-blind-trial.md](../05_HANDOFF/evidence/2026-10-24-ai-code-review-blind-trial.md) | AI 代码审查协议的独立盲测和修正证据 |
 | [TASK_CONTEXT.md](../02_TECH/TASK_CONTEXT.md) | 版本化派工、分身份检查点、纠偏送达与过期交付核对 |
 | [CONTEXT_CAPTURE.md](../02_TECH/CONTEXT_CAPTURE.md) | 可选事件接入、私有捕获、语义核对、恢复与停用的实际操作入口 |
 | [TECH_ARCHITECTURE_v1.md](../02_TECH/TECH_ARCHITECTURE_v1.md) | 实现结构 |
