@@ -49,7 +49,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 SCHEMA_VERSION = 1
 MANIFEST = "project-os.json"
 ADOPTION = ".project-os-adoption.json"

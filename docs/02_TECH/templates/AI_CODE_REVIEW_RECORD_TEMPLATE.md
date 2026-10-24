@@ -1,5 +1,7 @@
 # AI 代码审查记录
 
+模板版本：v1.7.0 候选，对应 `AI_CODE_REVIEW_PROTOCOL.md` v1.7.0 候选。
+
 ## 审查元数据
 
 - 项目：
@@ -12,12 +14,44 @@
 - 只读审查还是包含修复：
 - 未访问资源/范围：
 - 初审结论是否向复核者隐藏：
+- 初审者与复核者是否同一模型/同一委托链：
+- 证据目录：目标项目 evidence / `<audit>/work/<project>/evidence` 回退（说明理由）
+
+## 权威来源裁定
+
+- 采用的文档 / 文件：
+- 选择理由及适用范围：
+- 选错该来源会影响的结论：
+
+## 输入假设核验
+
+| 继承假设（如“已脱敏”“已修复”“已上线”） | 核验方式 | 实际结果 | 判定 | 证据 ID |
+|---|---|---|---|---|
+|  |  |  | confirmed / rejected / unknown |  |
 
 ## 适用性矩阵
 
+默认分类法：权限与身份、状态与一致性、幂等与重复、失败与恢复、文件与路径、凭据与秘密、依赖可达性、供应链与构建、网络与外部副作用、输入与边界、覆盖与可观测性。若采用其他分类法，在此声明来源和覆盖差异。
+
 | 风险项 | 适用性 | 依据 | 检查编号 |
 |---|---|---|---|
-|  | applicable / not_applicable / unknown |  |  |
+| 权限与身份 | applicable / not_applicable / unknown |  |  |
+| 状态与一致性 | applicable / not_applicable / unknown |  |  |
+| 幂等与重复 | applicable / not_applicable / unknown |  |  |
+| 失败与恢复 | applicable / not_applicable / unknown |  |  |
+| 文件与路径 | applicable / not_applicable / unknown |  |  |
+| 凭据与秘密 | applicable / not_applicable / unknown |  |  |
+| 依赖可达性 | applicable / not_applicable / unknown |  |  |
+| 供应链与构建 | applicable / not_applicable / unknown |  |  |
+| 网络与外部副作用 | applicable / not_applicable / unknown |  |  |
+| 输入与边界 | applicable / not_applicable / unknown |  |  |
+| 覆盖与可观测性 | applicable / not_applicable / unknown |  |  |
+
+## 覆盖范围与覆盖率
+
+| 子模块 / 层 | 入口数 | 已审 | 未审 | 未审理由 |
+|---|---:|---:|---:|---|
+|  |  |  |  |  |
 
 ## 高风险不变量
 
@@ -39,6 +73,7 @@
 - 静态检查动作及观察：
 - 结果：`pass` / `fail` / `partial` / `unknown`
 - 严重程度：`P0` / `P1` / `P2` / `P3`
+- 严重度校准理由（尤其是 P0/P1 边界）：
 - 未覆盖范围：
 - 残余风险：
 - 修复建议：
@@ -58,10 +93,43 @@
 |---|---|---|---|---|---:|---|---|
 | E-001 | observed / inferred / executed / adversarial / independently_reviewed | code / config / test / runtime / review |  |  |  |  |  |
 
+#### P0/P1 执行与降级声明
+
+- 本检查是否属于适用的 P0/P1：
+- 状态：已执行 / 未执行 / 降级
+- 未执行或降级理由、替代证据：
+- 残余风险接受人及引用：
+
+## 依赖可达性
+
+| 包 / 版本 / 公告 | 静态存在位置 | 运行时是否可达及依据 | 是否复现 | 结论 / 证据 ID |
+|---|---|---|---|---|
+|  |  |  |  |  |
+
+## 凭据与秘密
+
+| 位置 | 秘密类型 | 是否明文 | 是否进入构建产物 / 日志 / 网络 | 处置与复验 | 证据 ID |
+|---|---|---|---|---|---|
+|  |  |  |  |  |  |
+
+## 已验证安全（负结果）
+
+| 反例 | 预期 | 实际 | 判定 | 证据 ID |
+|---|---|---|---|---|
+|  |  |  | pass / partial / unknown |  |
+
+## 跨项目重复模式
+
+- 模式 / 共同触发条件：
+- 受影响项目及检查编号：
+- 是否需要修订协议、模板或共享规则：
+- 证据 ID：
+
 ## 独立复核
 
 - 复核者与时间：
 - 是否未读取初审结论：
+- 复核者与初审者是否同一模型/同一委托链：
 - 被挑战的检查编号/具体结论：
 - 挑战操作与预期结果：
 - 实际结果与判断：

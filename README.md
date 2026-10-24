@@ -4,7 +4,7 @@
 
 正式版本：[v1.5.0 发布说明与下载](https://github.com/furenzhong/awoo-vibe-coding-governance/releases/tag/v1.5.0)。已有项目按[升级指南](docs/03_DELIVERY/GOVERNANCE_UPGRADE_GUIDE.md)局部采用，发布不会自动改动项目或开启 hooks。
 
-当前工作树包含 **v1.6.0 候选**的交接与记录增长补强，尚非正式发行。范围见[实施方案](docs/03_DELIVERY/CONTINUITY_AND_SCALE_PLAN.md)，实际验证以[当前状态](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md)及其证据为准。
+当前工作树包含 **v1.7.0 候选**的代码审查协议与模板补强，尚非正式发行。范围与实际验证以[当前状态](docs/00_PROJECT_CONTROL/PROJECT_CURRENT_STATUS.md)及其证据为准。
 
 让 AI 换会话、换模型、换执行工具之后，仍能接着把同一个项目做对。
 
